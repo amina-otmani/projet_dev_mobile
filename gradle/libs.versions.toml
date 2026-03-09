@@ -15,6 +15,7 @@ lifecycleViewmodelNav3 = "2.10.0"
 kotlinSerialization = "2.2.21"
 navigation3Runtime = "1.0.1"
 navigation3Ui = "1.0.1"
+kotlinxSerializationCore = "1.9.0"
 
 kotlinx-serialization = "1.10.0"
 retrofit = "3.0.0"
@@ -46,11 +47,15 @@ androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecy
 navigation3-runtime = { group = "androidx.navigation3", name = "navigation3-runtime", version.ref = "navigation3Runtime" }
 navigation3-ui = { group = "androidx.navigation3", name = "navigation3-ui", version.ref = "navigation3Ui" }
 
+
 # requete API
 retrofit2 = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 retrofit2-converter-kotlinx-serialization = { group = "com.squareup.retrofit2", name = "converter-kotlinx-serialization", version.ref = "retrofit" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
+
+# Navigation3
+kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref ="kotlinxSerializationCore" }
 
 
 [plugins]

@@ -5,13 +5,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.assetbutton"
+    namespace = "com.example.projet_dev_mobile"
     compileSdk {
         version = release(36)
     }
 
     defaultConfig {
-        applicationId = "com.example.assetbutton"
+        applicationId = "com.example.projet_dev_mobile"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
@@ -49,8 +49,6 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.compose.material.icons.extended)
-    (libs.androidx.navigation3.ui)
-    implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.navigation3.runtime)
@@ -70,9 +68,14 @@ dependencies {
 
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
 
-    implementation("androidx.room:room-common-jvm:2.8.4")
-
     //Room
+    implementation("androidx.room:room-common-jvm:2.8.4")
     implementation("androidx.room:room-runtime:2.8.4")
     implementation("androidx.room:room-ktx:2.8.4")
+
+    // navigation 3
+    implementation(libs.androidx.navigation3.ui)
+    implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.lifecycle.viewmodel.navigation3)
+    implementation(libs.kotlinx.serialization.core)
 }
