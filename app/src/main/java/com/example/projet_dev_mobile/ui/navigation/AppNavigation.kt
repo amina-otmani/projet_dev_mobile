@@ -95,6 +95,11 @@ fun AppNavigation() {
                         Text("Liste des jeux")
                     }
 
+                    Destination.ADMIN -> NavEntry(key) {
+                        Text("Pannel Admin")
+                    }
+
+
                     else -> NavEntry(Unit) { Text("Unknow route") }
                 }
             }
