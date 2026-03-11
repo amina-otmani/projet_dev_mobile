@@ -39,6 +39,8 @@ android {
 }
 
 dependencies {
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+    implementation("com.squareup.okhttp3:okhttp-urlconnection:4.11.0")
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
     implementation(libs.androidx.core.ktx)
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
