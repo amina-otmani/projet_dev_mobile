@@ -5,14 +5,13 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class LoginRequest(
-    val login: String, // Le backend attend "login", pas "email"
+    val login: String,
     val password: String
 )
 
 @Serializable
 data class LoginResponse(
-    val token: String,
-    val refreshToken: String,
+    val message: String, // Ajout du champ message
     val user: UserDto
 )
 

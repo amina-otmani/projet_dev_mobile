@@ -3,20 +3,10 @@ package com.example.projet_dev_mobile.ui.navigation
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation3.runtime.NavEntry
@@ -30,44 +20,29 @@ object LoginDestination
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavigation() {
-    // 1. Récupération du contexte et vérification du RÔLE (et non plus du token)
     val context = LocalContext.current
-    val tokenManager = TokenManager(context)
 
-    // NOUVEAU : On vérifie si un rôle est sauvegardé
-    val isLoggedIn = !tokenManager.getRole().isNullOrEmpty()
+    // 1. On mémorise le tokenManager pour ne pas surcharger la mémoire
+    val tokenManager = remember { TokenManager(context) }
 
-    // 2. Initialisation du BackStack
-    val backStack = rememberSaveable {
+    // 2. On vérifie l'état de connexion uniquement au lancement
+    val isLoggedIn = remember { !tokenManager.getRole().isNullOrEmpty() }
+
+    // 3. Utiliser remember au lieu de rememberSaveable
+    val backStack = remember {
         mutableStateListOf<Any>(if (isLoggedIn) Destination.FESTIVAL else LoginDestination)
     }
 
     val currentDestination = backStack.lastOrNull()
 
-    // 3. Routage principal
-    if (currentDestination == LoginDestination) {
-        NavDisplay(
-            backStack = backStack,
-            onBack = { backStack.removeLastOrNull() },
-            entryProvider = { key ->
-                when (key) {
-                    LoginDestination -> NavEntry(key) {
-                        LoginScreen(
-                            onLoginSuccess = {
-                                // Quand le login réussit, on vide l'historique et on va sur Festival
-                                backStack.clear()
-                                backStack.add(Destination.FESTIVAL)
-                            }
-                        )
-                    }
-                    else -> NavEntry(Unit) { Text("Unknown Route") }
-                }
-            }
-        )
-    } else {
-        // 4. Interface de l'application une fois connecté
-        Scaffold(
-            topBar = {
+    // On crée un booléen pour savoir si on est sur la page de connexion
+    val isLoginScreen = currentDestination == LoginDestination
+
+    // 4. UN SEUL Scaffold pour toute l'appli.
+    // S'il s'agit de la page de login, on laisse les Top/Bottom bar vides !
+    Scaffold(
+        topBar = {
+            if (!isLoginScreen) { // Affiche la topBar seulement si on n'est pas sur le login
                 CenterAlignedTopAppBar(
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -85,8 +60,10 @@ fun AppNavigation() {
                         }
                     },
                 )
-            },
-            bottomBar = {
+            }
+        },
+        bottomBar = {
+            if (!isLoginScreen) { // Affiche la navbar seulement si on n'est pas sur le login
                 BottomAppBar(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.primary,
@@ -115,31 +92,39 @@ fun AppNavigation() {
                         }
                     }
                 }
-            },
-        ) { innerPadding ->
-            NavDisplay(
-                backStack = backStack,
-                onBack = { backStack.removeLastOrNull() },
-                modifier = Modifier.padding(innerPadding),
-                entryProvider = { key ->
-                    when (key) {
-                        Destination.FESTIVAL -> NavEntry(key) {
-                            HomeScreen(
-                                onLogout = {
-                                    // La déconnexion effacera bien le rôle enregistré
-                                    tokenManager.clear()
-                                    backStack.clear()
-                                    backStack.add(LoginDestination)
-                                }
-                            )
-                        }
-                        Destination.EDITEURS -> NavEntry(key) { Text("Liste des editeurs") }
-                        Destination.JEUX -> NavEntry(key) { Text("Liste des jeux") }
-                        Destination.ADMIN -> NavEntry(key) { Text("Pannel Admin") }
-                        else -> NavEntry(Unit) { Text("Unknown route") }
+            }
+        },
+    ) { innerPadding ->
+        // Le Padding (innerPadding) s'adaptera automatiquement à 0 si on cache les barres
+        NavDisplay(
+            backStack = backStack,
+            onBack = { backStack.removeLastOrNull() },
+            modifier = Modifier.padding(innerPadding),
+            entryProvider = { key ->
+                when (key) {
+                    LoginDestination -> NavEntry(key) {
+                        LoginScreen(
+                            onLoginSuccess = {
+                                backStack.clear()
+                                backStack.add(Destination.FESTIVAL)
+                            }
+                        )
                     }
+                    Destination.FESTIVAL -> NavEntry(key) {
+                        HomeScreen(
+                            onLogout = {
+                                tokenManager.clear()
+                                backStack.clear()
+                                backStack.add(LoginDestination)
+                            }
+                        )
+                    }
+                    Destination.EDITEURS -> NavEntry(key) { Text("Liste des editeurs") }
+                    Destination.JEUX -> NavEntry(key) { Text("Liste des jeux") }
+                    Destination.ADMIN -> NavEntry(key) { Text("Pannel Admin") }
+                    else -> NavEntry(Unit) { Text("Unknown route") }
                 }
-            )
-        }
+            }
+        )
     }
 }
