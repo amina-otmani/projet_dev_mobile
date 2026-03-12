@@ -27,23 +27,25 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit, // Fonction passée par le NavHost pour changer d'écran
+    onLoginSuccess: () -> Unit,
     viewModel: LoginViewModel = viewModel()
 ) {
-    // 1. On observe l'état du ViewModel
     val uiState by viewModel.uiState.collectAsState()
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-
+    // UN SEUL LaunchedEffect, placé au niveau principal
     LaunchedEffect(uiState) {
         if (uiState is LoginUiState.Success) {
+            // On remet l'état à "Idle" pour éviter le bug de reconnexion automatique
+            viewModel.resetState()
+
+            // Puis on navigue vers l'accueil
             onLoginSuccess()
         }
     }
 
-    // Le design de la page (l'équivalent de flexbox direction column)
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -58,7 +60,6 @@ fun LoginScreen(
             modifier = Modifier.padding(bottom = 32.dp)
         )
 
-        // Champ Email
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -69,41 +70,34 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Champ Mot de passe
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
             label = { Text("Mot de passe") },
-            visualTransformation = PasswordVisualTransformation(), // Censure le texte par des "•••"
+            visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Bouton de connexion ou indicateur de chargement
+        // Affichage du bouton OU du chargement
         if (uiState is LoginUiState.Loading) {
-            CircularProgressIndicator() // Affiche la roue de chargement
+            CircularProgressIndicator()
         } else {
             Button(
-                onClick = { viewModel.login(email, password) },
-                // On désactive le bouton si ça charge
-                enabled = uiState !is LoginUiState.Loading
+                onClick = { viewModel.login(email, password) }
             ) {
                 Text("Se connecter")
             }
 
-            // Affichage optionnel d'un message d'erreur en bas
+            // Affichage de l'erreur en dessous du bouton si besoin
             if (uiState is LoginUiState.Error) {
+                Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = (uiState as LoginUiState.Error).message,
                     color = MaterialTheme.colorScheme.error
                 )
-            }
-
-            // Affichage optionnel d'une roue de chargement
-            if (uiState is LoginUiState.Loading) {
-                CircularProgressIndicator()
             }
         }
     }
