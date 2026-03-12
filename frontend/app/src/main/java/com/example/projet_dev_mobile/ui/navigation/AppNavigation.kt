@@ -25,26 +25,26 @@ import com.example.projet_dev_mobile.data.local.TokenManager
 import com.example.projet_dev_mobile.ui.screens.home.HomeScreen
 import com.example.projet_dev_mobile.ui.screens.login.LoginScreen
 
-// On crée une destination spécifique pour le Login (hors de votre enum Destination)
-// pour qu'elle n'apparaisse pas dans la BottomBar
 object LoginDestination
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavigation() {
-    // 1. Récupération du contexte et vérification du token
+    // 1. Récupération du contexte et vérification du RÔLE (et non plus du token)
     val context = LocalContext.current
     val tokenManager = TokenManager(context)
-    val isLoggedIn = !tokenManager.getToken().isNullOrEmpty()
 
-    // 2. Initialisation du BackStack (si connecté -> FESTIVAL, sinon -> Login)
+    // NOUVEAU : On vérifie si un rôle est sauvegardé
+    val isLoggedIn = !tokenManager.getRole().isNullOrEmpty()
+
+    // 2. Initialisation du BackStack
     val backStack = rememberSaveable {
         mutableStateListOf<Any>(if (isLoggedIn) Destination.FESTIVAL else LoginDestination)
     }
 
     val currentDestination = backStack.lastOrNull()
 
-    // 3. Routage principal : On cache le Scaffold si on est sur l'écran de connexion
+    // 3. Routage principal
     if (currentDestination == LoginDestination) {
         NavDisplay(
             backStack = backStack,
@@ -65,7 +65,7 @@ fun AppNavigation() {
             }
         )
     } else {
-        // 4. Interface de l'application une fois connecté (avec barre de navigation)
+        // 4. Interface de l'application une fois connecté
         Scaffold(
             topBar = {
                 CenterAlignedTopAppBar(
@@ -73,9 +73,7 @@ fun AppNavigation() {
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                         titleContentColor = MaterialTheme.colorScheme.primary,
                     ),
-                    title = {
-                        Text("Gestion des Festivals")
-                    },
+                    title = { Text("Gestion des Festivals") },
                     navigationIcon = {
                         if (backStack.size > 1) {
                             IconButton(onClick = { backStack.removeLastOrNull() }) {
@@ -101,9 +99,7 @@ fun AppNavigation() {
                             NavigationBarItem(
                                 selected = currentDestination == destination,
                                 onClick = {
-                                    // On évite d'ajouter la page si on est déjà dessus
                                     if (currentDestination != destination) {
-                                        // On vide pour éviter un empilement infini des onglets (comportement standard)
                                         backStack.clear()
                                         backStack.add(destination)
                                     }
@@ -130,25 +126,16 @@ fun AppNavigation() {
                         Destination.FESTIVAL -> NavEntry(key) {
                             HomeScreen(
                                 onLogout = {
+                                    // La déconnexion effacera bien le rôle enregistré
                                     tokenManager.clear()
                                     backStack.clear()
                                     backStack.add(LoginDestination)
                                 }
                             )
                         }
-
-                        Destination.EDITEURS -> NavEntry(key) {
-                            Text("Liste des editeurs")
-                        }
-
-                        Destination.JEUX -> NavEntry(key) {
-                            Text("Liste des jeux")
-                        }
-
-                        Destination.ADMIN -> NavEntry(key) {
-                            Text("Pannel Admin")
-                        }
-
+                        Destination.EDITEURS -> NavEntry(key) { Text("Liste des editeurs") }
+                        Destination.JEUX -> NavEntry(key) { Text("Liste des jeux") }
+                        Destination.ADMIN -> NavEntry(key) { Text("Pannel Admin") }
                         else -> NavEntry(Unit) { Text("Unknown route") }
                     }
                 }

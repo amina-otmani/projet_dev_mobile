@@ -77,8 +77,8 @@ const startServer = async () => {
     
     let key, cert;
     try {
-      key = fs.readFileSync('./certs/localhost-key.pem');
-      cert = fs.readFileSync('./certs/localhost.pem');
+      key = fs.readFileSync('../certs/localhost-key.pem');
+      cert = fs.readFileSync('../certs/localhost.pem');
     } catch (e) {
       // Certs non trouvés
     }

@@ -3,13 +3,14 @@ package com.example.projet_dev_mobile.data.network
 import android.content.Context
 import com.example.projet_dev_mobile.data.local.TokenManager
 import kotlinx.serialization.json.Json
-import okhttp3.JavaNetCookieJar
+import okhttp3.Cookie
+import okhttp3.CookieJar
+import okhttp3.HttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
-import java.net.CookieManager
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import javax.net.ssl.SSLContext
@@ -27,13 +28,12 @@ object RetrofitInstance {
     fun getApiService(context: Context): APIService {
         val tokenManager = TokenManager(context)
 
+        // 1. Intercepteur pour voir les requêtes dans le Logcat
         val loggingInterceptor = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
         }
 
-        val cookieManager = CookieManager()
-        val cookieJar = JavaNetCookieJar(cookieManager)
-
+        // 2. Configuration SSL pour ignorer l'erreur du certificat HTTPS local
         val trustAllCerts = arrayOf<TrustManager>(
             object : X509TrustManager {
                 override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
@@ -45,16 +45,28 @@ object RetrofitInstance {
         val sslContext = SSLContext.getInstance("SSL")
         sslContext.init(null, trustAllCerts, SecureRandom())
 
+        // 3. Création du client OkHttp unifié
         val client = OkHttpClient.Builder()
             .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
-            .hostnameVerifier { _, _ -> true }
+            .hostnameVerifier { hostname, _ -> hostname == "10.0.2.2" } // Sécurité: on ignore SSL que pour l'émulateur
+            .cookieJar(object : CookieJar {
+                private val cookieStore = HashMap<String, MutableList<Cookie>>()
+
+                override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
+                    cookieStore[url.host] = cookies.toMutableList()
+                }
+
+                override fun loadForRequest(url: HttpUrl): List<Cookie> {
+                    return cookieStore[url.host] ?: ArrayList()
+                }
+            })
             .addInterceptor(loggingInterceptor)
             .addInterceptor(AuthInterceptor(tokenManager))
-            .cookieJar(cookieJar)
             .build()
 
         val contentType = "application/json".toMediaType()
 
+        // 4. Création de l'instance Retrofit
         return Retrofit.Builder()
             .baseUrl(BASE_URL)
             .addConverterFactory(json.asConverterFactory(contentType))

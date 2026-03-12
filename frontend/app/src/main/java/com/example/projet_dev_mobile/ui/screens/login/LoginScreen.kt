@@ -27,17 +27,16 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit,
-    viewModel: LoginViewModel = viewModel() // On injecte automatiquement votre ViewModel
+    onLoginSuccess: () -> Unit, // Fonction passée par le NavHost pour changer d'écran
+    viewModel: LoginViewModel = viewModel()
 ) {
-    // Variables pour stocker ce que l'utilisateur tape (comme le [(ngModel)] en Angular)
+    // 1. On observe l'état du ViewModel
+    val uiState by viewModel.uiState.collectAsState()
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    // Observation de l'état (Chargement, Erreur, Succès)
-    val uiState by viewModel.uiState.collectAsState()
 
-    // Si l'état passe à Success, on déclenche la navigation vers Home
     LaunchedEffect(uiState) {
         if (uiState is LoginUiState.Success) {
             onLoginSuccess()
@@ -87,26 +86,25 @@ fun LoginScreen(
             CircularProgressIndicator() // Affiche la roue de chargement
         } else {
             Button(
-                onClick = {
-                    // Appel de la méthode login de votre ViewModel (qui tapera sur Retrofit)
-                    viewModel.login(email, password)
-                },
-                modifier = Modifier.fillMaxWidth().height(50.dp),
-                // On désactive le bouton si les champs sont vides
-                enabled = email.isNotBlank() && password.isNotBlank()
+                onClick = { viewModel.login(email, password) },
+                // On désactive le bouton si ça charge
+                enabled = uiState !is LoginUiState.Loading
             ) {
                 Text("Se connecter")
             }
-        }
 
-        // Affichage des erreurs si Retrofit renvoie une erreur (401, 500, etc.)
-        if (uiState is LoginUiState.Error) {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = (uiState as LoginUiState.Error).message,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyMedium
-            )
+            // Affichage optionnel d'un message d'erreur en bas
+            if (uiState is LoginUiState.Error) {
+                Text(
+                    text = (uiState as LoginUiState.Error).message,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+
+            // Affichage optionnel d'une roue de chargement
+            if (uiState is LoginUiState.Loading) {
+                CircularProgressIndicator()
+            }
         }
     }
 }
