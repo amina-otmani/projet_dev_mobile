@@ -18,7 +18,7 @@ import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
 
 object RetrofitInstance {
-    private const val BASE_URL = "https://10.0.2.2:4000/api/"
+    private const val BASE_URL = "https://162.38.111.43/api/"
 
     private val json = Json {
         ignoreUnknownKeys = true
@@ -48,7 +48,7 @@ object RetrofitInstance {
         // 3. Création du client OkHttp unifié
         val client = OkHttpClient.Builder()
             .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
-            .hostnameVerifier { hostname, _ -> hostname == "10.0.2.2" } // Sécurité: on ignore SSL que pour l'émulateur
+            .hostnameVerifier { hostname, _ -> hostname == "162.38.111.43" } // Sécurité: on ignore SSL que pour l'émulateur
             .cookieJar(object : CookieJar {
                 private val cookieStore = HashMap<String, MutableList<Cookie>>()
 
