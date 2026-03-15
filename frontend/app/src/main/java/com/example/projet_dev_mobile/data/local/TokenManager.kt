@@ -3,6 +3,7 @@ package com.example.projet_dev_mobile.data.local
 import android.content.Context
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import com.example.projet_dev_mobile.data.entity.enum.RoleType
 
 class TokenManager(context: Context) {
     private val masterKey = MasterKey.Builder(context)
@@ -18,11 +19,18 @@ class TokenManager(context: Context) {
     )
 
     // --- NOUVELLES MÉTHODES ---
-    fun saveRole(role: String) {
-        prefs.edit().putString("user_role", role).apply()
+    fun saveRole(role: RoleType) {
+        prefs.edit().putString("user_role", role.name).apply()
     }
 
-    fun getRole(): String? = prefs.getString("user_role", null)
+    fun getRole(): RoleType? {
+        val roleName = prefs.getString("user_role", null)
+        return try {
+            roleName?.let { RoleType.valueOf(it) }
+        } catch (e: IllegalArgumentException) {
+            null
+        }
+    }
 
     fun saveLogin(login: String) {
         prefs.edit().putString("user_login", login).apply()

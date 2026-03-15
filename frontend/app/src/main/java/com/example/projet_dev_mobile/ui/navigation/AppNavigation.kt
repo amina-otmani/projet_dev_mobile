@@ -3,46 +3,61 @@ package com.example.projet_dev_mobile.ui.navigation
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.ui.NavDisplay
+import com.example.projet_dev_mobile.data.entity.enum.RoleType
 import com.example.projet_dev_mobile.data.local.TokenManager
+import com.example.projet_dev_mobile.data.network.RetrofitInstance
 import com.example.projet_dev_mobile.ui.screens.home.HomeScreen
 import com.example.projet_dev_mobile.ui.screens.login.LoginScreen
+import com.example.projet_dev_mobile.ui.screens.pending.PendingApprovalScreen
+import com.example.projet_dev_mobile.ui.screens.register.RegisterScreen
+import kotlinx.coroutines.launch
 
 object LoginDestination
+object RegisterDestination
+object PendingApprovalDestination
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavigation() {
     val context = LocalContext.current
-
-    // 1. On mémorise le tokenManager pour ne pas surcharger la mémoire
     val tokenManager = remember { TokenManager(context) }
 
-    // 2. On vérifie l'état de connexion uniquement au lancement
-    val isLoggedIn = remember { !tokenManager.getRole().isNullOrEmpty() }
+    val coroutineScope = rememberCoroutineScope()
+    val api = remember { RetrofitInstance.getApiService(context) }
 
-    // 3. Utiliser remember au lieu de rememberSaveable
+    val currentRole = remember { tokenManager.getRole() }
+    val isLoggedIn = remember { currentRole != null }
+    val isPendingApproval = remember { isLoggedIn && currentRole == RoleType.NO_ROLE }
+
     val backStack = remember {
-        mutableStateListOf<Any>(if (isLoggedIn) Destination.FESTIVAL else LoginDestination)
+        mutableStateListOf<Any>().apply {
+            if (isPendingApproval) {
+                add(PendingApprovalDestination)
+            } else if (isLoggedIn) {
+                add(Destination.FESTIVAL)
+            } else {
+                add(LoginDestination)
+            }
+        }
     }
 
     val currentDestination = backStack.lastOrNull()
 
-    // On crée un booléen pour savoir si on est sur la page de connexion
-    val isLoginScreen = currentDestination == LoginDestination
+    // TopBar et NavBar invisibles sur TOUS les écrans d'authentification
+    val isAuthScreen = currentDestination == LoginDestination ||
+            currentDestination == RegisterDestination ||
+            currentDestination == PendingApprovalDestination
 
-    // 4. UN SEUL Scaffold pour toute l'appli.
-    // S'il s'agit de la page de login, on laisse les Top/Bottom bar vides !
     Scaffold(
         topBar = {
-            if (!isLoginScreen) { // Affiche la topBar seulement si on n'est pas sur le login
+            if (!isAuthScreen) {
                 CenterAlignedTopAppBar(
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -59,11 +74,24 @@ fun AppNavigation() {
                             }
                         }
                     },
+                    actions = {
+                        IconButton(onClick = {
+                            tokenManager.clear()
+                            backStack.clear()
+                            backStack.add(LoginDestination)
+                        }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                                contentDescription = "Se déconnecter",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
                 )
             }
         },
         bottomBar = {
-            if (!isLoginScreen) { // Affiche la navbar seulement si on n'est pas sur le login
+            if (!isAuthScreen) {
                 BottomAppBar(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.primary,
@@ -95,7 +123,6 @@ fun AppNavigation() {
             }
         },
     ) { innerPadding ->
-        // Le Padding (innerPadding) s'adaptera automatiquement à 0 si on cache les barres
         NavDisplay(
             backStack = backStack,
             onBack = { backStack.removeLastOrNull() },
@@ -105,19 +132,70 @@ fun AppNavigation() {
                     LoginDestination -> NavEntry(key) {
                         LoginScreen(
                             onLoginSuccess = {
+                                val role = tokenManager.getRole()
                                 backStack.clear()
-                                backStack.add(Destination.FESTIVAL)
+                                if (role == RoleType.NO_ROLE) {
+                                    backStack.add(PendingApprovalDestination)
+                                } else {
+                                    backStack.add(Destination.FESTIVAL)
+                                }
+                            },
+                            onNavigateToRegister = {
+                                backStack.add(RegisterDestination)
                             }
                         )
                     }
-                    Destination.FESTIVAL -> NavEntry(key) {
-                        HomeScreen(
+                    RegisterDestination -> NavEntry(key) {
+                        RegisterScreen(
+                            onRegisterSuccess = {
+                                backStack.clear()
+                                backStack.add(PendingApprovalDestination)
+                            },
+                            onNavigateToLogin = {
+                                backStack.removeLastOrNull()
+                            }
+                        )
+                    }
+                    PendingApprovalDestination -> NavEntry(key) {
+                        PendingApprovalScreen(
+                            onRefresh = {
+                                coroutineScope.launch {
+                                    try {
+                                        val response = api.whoami()
+
+                                        if (response.isSuccessful) {
+                                            // Le backend renvoie { user: { role: RoleType } }
+                                            val userRole = response.body()?.user?.role
+
+                                            // Si l'admin a validé, le rôle n'est plus "no-role" (RoleType.no_role)
+                                            if (userRole != null && userRole != RoleType.NO_ROLE) {
+                                                tokenManager.saveRole(userRole)
+                                                backStack.clear()
+                                                backStack.add(Destination.FESTIVAL)
+                                            }
+                                        } else {
+                                            // L'API a répondu avec une erreur
+                                            if (response.code() == 401 || response.code() == 403) {
+                                                // La session a vraiment expiré -> retour au login
+                                                tokenManager.clear()
+                                                backStack.clear()
+                                                backStack.add(LoginDestination)
+                                            }
+                                        }
+                                    } catch (e: Exception) {
+                                        // Erreur réseau (pas de wifi), on reste sur la page
+                                    }
+                                }
+                            },
                             onLogout = {
                                 tokenManager.clear()
                                 backStack.clear()
                                 backStack.add(LoginDestination)
                             }
                         )
+                    }
+                    Destination.FESTIVAL -> NavEntry(key) {
+                        HomeScreen()
                     }
                     Destination.EDITEURS -> NavEntry(key) { Text("Liste des editeurs") }
                     Destination.JEUX -> NavEntry(key) { Text("Liste des jeux") }

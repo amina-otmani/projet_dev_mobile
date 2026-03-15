@@ -35,7 +35,7 @@ data class Reservation(
     val date_paiement: Long? = null
 ) {
     init {
-        if (type == TypeReservant.Editeur) {
+        if (type == TypeReservant.EDITEUR) {
             require(editeur_id != null) { "editeur_id requis si type = EDITEUR" }
         } else {
             require(autre_nom_reservant != null) { "autre_nom_reservant requis si type != EDITEUR" }

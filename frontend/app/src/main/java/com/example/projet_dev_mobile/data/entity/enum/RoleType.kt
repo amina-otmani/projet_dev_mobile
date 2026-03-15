@@ -5,9 +5,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class RoleType {
-    @SerialName("no-role") no_role,
-    visiteur,
-    organisateur_jeux,
-    organisateur_reservations,
-    admin
+    @SerialName("no-role") NO_ROLE,
+    @SerialName("visiteur") VISITEUR,
+    @SerialName("organisateur_jeux") ORGANISATEUR_JEUX,
+    @SerialName("organisateur_reservations") ORGANISATEUR_RESERVATIONS,
+    @SerialName("admin") ADMIN
 }

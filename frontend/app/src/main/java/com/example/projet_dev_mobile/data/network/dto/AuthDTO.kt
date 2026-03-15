@@ -11,7 +11,7 @@ data class LoginRequest(
 
 @Serializable
 data class LoginResponse(
-    val message: String, // Ajout du champ message
+    val message: String? = null,
     val user: UserDto
 )
 

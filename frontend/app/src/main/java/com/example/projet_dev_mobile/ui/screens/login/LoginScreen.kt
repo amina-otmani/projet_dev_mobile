@@ -12,6 +12,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -28,6 +29,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
+    onNavigateToRegister: () -> Unit,
     viewModel: LoginViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -86,9 +88,16 @@ fun LoginScreen(
             CircularProgressIndicator()
         } else {
             Button(
-                onClick = { viewModel.login(email, password) }
+                onClick = { viewModel.login(email, password) },
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Se connecter")
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            TextButton(onClick = onNavigateToRegister) {
+                Text("Pas de compte ? Inscrivez-vous")
             }
 
             // Affichage de l'erreur en dessous du bouton si besoin

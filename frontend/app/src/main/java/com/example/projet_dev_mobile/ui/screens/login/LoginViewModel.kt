@@ -18,7 +18,6 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
     private val tokenManager = TokenManager(application)
 
-    // Dans votre ViewModel :
     fun login(email: String, mdp: String) {
         _uiState.value = LoginUiState.Loading
 
@@ -31,26 +30,22 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                 if (response.isSuccessful) {
                     val loginResponse = response.body()
 
-                    // 1. On récupère la liste de tous les headers "Set-Cookie"
                     val cookies = response.headers().values("Set-Cookie")
                     var accessToken = ""
                     var refreshToken = ""
 
-                    // 2. On extrait les valeurs des tokens
                     cookies.forEach { cookie ->
                         if (cookie.startsWith("access_token=")) {
-                            accessToken =
-                                cookie.substringAfter("access_token=").substringBefore(";")
+                            accessToken = cookie.substringAfter("access_token=").substringBefore(";")
                         } else if (cookie.startsWith("refresh_token=")) {
-                            refreshToken =
-                                cookie.substringAfter("refresh_token=").substringBefore(";")
+                            refreshToken = cookie.substringAfter("refresh_token=").substringBefore(";")
                         }
                     }
 
                     if (loginResponse != null) {
-                        // On sauvegarde les tokens extraits des headers et les infos utilisateur
                         tokenManager.saveTokens(accessToken, refreshToken)
-                        tokenManager.saveRole(loginResponse.user.role.name)
+                        // CORRECTION ICI : "role" est une String selon le backend
+                        tokenManager.saveRole(loginResponse.user.role)
                         tokenManager.saveLogin(loginResponse.user.login)
                     }
 
@@ -63,6 +58,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+
     fun resetState() {
         _uiState.value = LoginUiState.Idle
     }
