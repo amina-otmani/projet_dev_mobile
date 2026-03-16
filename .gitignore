@@ -1,0 +1,66 @@
+# ==============================================================================
+# SECRETS ET CONFIGURATIONS LOCALES (NE JAMAIS VERSIONNER)
+# ==============================================================================
+local.properties
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.jks
+*.keystore
+google-services.json
+certs/
+
+# ==============================================================================
+# FRONTEND: ANDROID / KOTLIN / GRADLE
+# ==============================================================================
+# Gradle
+.gradle/
+*/build/
+*/*/build/
+gradle-app.setting
+
+# Fichiers générés par Android Studio / IntelliJ
+.idea/
+*.iml
+*.iws
+.idea_modules/
+out/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# ==============================================================================
+# BACKEND: NODE.JS / EXPRESS / TYPESCRIPT
+# ==============================================================================
+# Dépendances Node
+node_modules/
+jspm_packages/
+typings/
+
+# Fichiers de build TypeScript / Express
+backend/dist/
+backend/build/
+*.tsbuildinfo
+
+# Logs NPM / Yarn
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ==============================================================================
+# SYSTEME D'EXPLOITATION (Mac, Windows, Linux)
+# ==============================================================================
+# Mac
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
