@@ -11,5 +11,5 @@ data class User(
     val login: String,
     val password_hash: String,
     // valeur par défault
-    val role: RoleType = RoleType.no_role
+    val role: RoleType = RoleType.NO_ROLE
 )
