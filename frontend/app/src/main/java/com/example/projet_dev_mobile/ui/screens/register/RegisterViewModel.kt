@@ -32,11 +32,28 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
             try {
                 val api = RetrofitInstance.getApiService(getApplication())
                 val request = LoginRequest(login = email, password = mdp)
-
                 val response = api.register(request)
 
                 if (response.isSuccessful) {
                     val user = response.body()?.user
+
+                    // Récupération des tokens comme pour le login
+                    val cookies = response.headers().values("Set-Cookie")
+                    var accessToken = ""
+                    var refreshToken = ""
+
+                    cookies.forEach { cookie ->
+                        if (cookie.startsWith("access_token=")) {
+                            accessToken = cookie.substringAfter("access_token=").substringBefore(";")
+                        } else if (cookie.startsWith("refresh_token=")) {
+                            refreshToken = cookie.substringAfter("refresh_token=").substringBefore(";")
+                        }
+                    }
+
+                    if (accessToken.isNotEmpty() && refreshToken.isNotEmpty()) {
+                        tokenManager.saveTokens(accessToken, refreshToken)
+                    }
+
                     if (user != null) {
                         tokenManager.saveRole(user.role)
                         tokenManager.saveLogin(user.login)

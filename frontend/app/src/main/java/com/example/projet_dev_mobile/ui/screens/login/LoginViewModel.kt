@@ -29,8 +29,8 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
                 if (response.isSuccessful) {
                     val loginResponse = response.body()
-
                     val cookies = response.headers().values("Set-Cookie")
+
                     var accessToken = ""
                     var refreshToken = ""
 
@@ -43,8 +43,10 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                     }
 
                     if (loginResponse != null) {
-                        tokenManager.saveTokens(accessToken, refreshToken)
-                        // CORRECTION ICI : "role" est une String selon le backend
+                        // On ne sauvegarde que si les tokens ont bien été trouvés
+                        if (accessToken.isNotEmpty() && refreshToken.isNotEmpty()) {
+                            tokenManager.saveTokens(accessToken, refreshToken)
+                        }
                         tokenManager.saveRole(loginResponse.user.role)
                         tokenManager.saveLogin(loginResponse.user.login)
                     }
@@ -58,7 +60,6 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
-
     fun resetState() {
         _uiState.value = LoginUiState.Idle
     }

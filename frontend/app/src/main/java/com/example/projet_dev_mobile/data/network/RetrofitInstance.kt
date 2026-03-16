@@ -1,11 +1,9 @@
 package com.example.projet_dev_mobile.data.network
 
 import android.content.Context
+import android.content.pm.ApplicationInfo
 import com.example.projet_dev_mobile.data.local.TokenManager
 import kotlinx.serialization.json.Json
-import okhttp3.Cookie
-import okhttp3.CookieJar
-import okhttp3.HttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -25,52 +23,58 @@ object RetrofitInstance {
         coerceInputValues = true
     }
 
+    @Volatile
+    private var apiService: APIService? = null
+
     fun getApiService(context: Context): APIService {
-        val tokenManager = TokenManager(context)
+        val existing = apiService
+        if (existing != null) return existing
 
-        //Intercepteur pour voir les requêtes dans le Logcat
-        val loggingInterceptor = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
-        }
+        return synchronized(this) {
+            val cached = apiService
+            if (cached != null) return cached
 
-        // TEMPORAIRE : Configuration SSL pour ignorer l'erreur du certificat HTTPS local
-        val trustAllCerts = arrayOf<TrustManager>(
-            object : X509TrustManager {
-                override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
-                override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
-                override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+            val tokenManager = TokenManager(context)
+
+            val loggingInterceptor = HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
             }
-        )
 
-        val sslContext = SSLContext.getInstance("SSL")
-        sslContext.init(null, trustAllCerts, SecureRandom())
+            val clientBuilder = OkHttpClient.Builder()
+                .addInterceptor(loggingInterceptor)
+                .addInterceptor(AuthInterceptor(tokenManager))
 
-        // Création du client OkHttp unifié
-        val client = OkHttpClient.Builder()
-            .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
-            .hostnameVerifier { hostname, _ -> hostname == "162.38.111.43" } // Sécurité: on ignore SSL que pour l'émulateur
-            .cookieJar(object : CookieJar {
-                private val cookieStore = HashMap<String, MutableList<Cookie>>()
+            val isDebug = (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
 
-                override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
-                    cookieStore[url.host] = cookies.toMutableList()
-                }
+            if (isDebug) {
+                val trustAllCerts = arrayOf<TrustManager>(
+                    object : X509TrustManager {
+                        override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+                        override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+                        override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+                    }
+                )
 
-                override fun loadForRequest(url: HttpUrl): List<Cookie> {
-                    return cookieStore[url.host] ?: ArrayList()
-                }
-            })
-            .addInterceptor(loggingInterceptor)
-            .addInterceptor(AuthInterceptor(tokenManager))
-            .build()
+                val sslContext = SSLContext.getInstance("SSL")
+                sslContext.init(null, trustAllCerts, SecureRandom())
 
-        val contentType = "application/json".toMediaType()
+                clientBuilder
+                    .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
+                    .hostnameVerifier { hostname, _ -> hostname == "162.38.111.43" }
+            }
 
-        return Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .addConverterFactory(json.asConverterFactory(contentType))
-            .client(client)
-            .build()
-            .create(APIService::class.java)
+            val client = clientBuilder.build()
+            val contentType = "application/json".toMediaType()
+
+            val retrofit = Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .addConverterFactory(json.asConverterFactory(contentType))
+                .client(client)
+                .build()
+
+            val service = retrofit.create(APIService::class.java)
+            apiService = service
+            service
+        }
     }
 }

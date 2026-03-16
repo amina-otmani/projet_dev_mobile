@@ -18,6 +18,8 @@ import com.example.projet_dev_mobile.ui.screens.login.LoginScreen
 import com.example.projet_dev_mobile.ui.screens.pending.PendingApprovalScreen
 import com.example.projet_dev_mobile.ui.screens.register.RegisterScreen
 import kotlinx.coroutines.launch
+import android.widget.Toast
+import android.util.Log
 
 object LoginDestination
 object RegisterDestination
@@ -179,6 +181,8 @@ fun AppNavigation() {
                                             }
                                         }
                                     } catch (e: Exception) {
+                                        Log.e("PendingApproval", "Erreur lors du refresh : ${e.message}")
+                                        Toast.makeText(context, "Erreur réseau, impossible de vérifier le statut.", Toast.LENGTH_SHORT).show()
                                     }
                                 }
                             },
