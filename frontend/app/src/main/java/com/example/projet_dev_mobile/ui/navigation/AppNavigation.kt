@@ -50,7 +50,6 @@ fun AppNavigation() {
 
     val currentDestination = backStack.lastOrNull()
 
-    // TopBar et NavBar invisibles sur TOUS les écrans d'authentification
     val isAuthScreen = currentDestination == LoginDestination ||
             currentDestination == RegisterDestination ||
             currentDestination == PendingApprovalDestination
@@ -164,26 +163,22 @@ fun AppNavigation() {
                                         val response = api.whoami()
 
                                         if (response.isSuccessful) {
-                                            // Le backend renvoie { user: { role: RoleType } }
                                             val userRole = response.body()?.user?.role
 
-                                            // Si l'admin a validé, le rôle n'est plus "no-role" (RoleType.no_role)
                                             if (userRole != null && userRole != RoleType.NO_ROLE) {
                                                 tokenManager.saveRole(userRole)
                                                 backStack.clear()
                                                 backStack.add(Destination.FESTIVAL)
                                             }
                                         } else {
-                                            // L'API a répondu avec une erreur
                                             if (response.code() == 401 || response.code() == 403) {
-                                                // La session a vraiment expiré -> retour au login
+                                                // La session a expiré -> retour au login
                                                 tokenManager.clear()
                                                 backStack.clear()
                                                 backStack.add(LoginDestination)
                                             }
                                         }
                                     } catch (e: Exception) {
-                                        // Erreur réseau (pas de wifi), on reste sur la page
                                     }
                                 }
                             },

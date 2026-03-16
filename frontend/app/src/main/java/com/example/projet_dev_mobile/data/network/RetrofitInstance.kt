@@ -28,12 +28,12 @@ object RetrofitInstance {
     fun getApiService(context: Context): APIService {
         val tokenManager = TokenManager(context)
 
-        // 1. Intercepteur pour voir les requêtes dans le Logcat
+        //Intercepteur pour voir les requêtes dans le Logcat
         val loggingInterceptor = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
         }
 
-        // 2. Configuration SSL pour ignorer l'erreur du certificat HTTPS local
+        // TEMPORAIRE : Configuration SSL pour ignorer l'erreur du certificat HTTPS local
         val trustAllCerts = arrayOf<TrustManager>(
             object : X509TrustManager {
                 override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
@@ -45,7 +45,7 @@ object RetrofitInstance {
         val sslContext = SSLContext.getInstance("SSL")
         sslContext.init(null, trustAllCerts, SecureRandom())
 
-        // 3. Création du client OkHttp unifié
+        // Création du client OkHttp unifié
         val client = OkHttpClient.Builder()
             .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
             .hostnameVerifier { hostname, _ -> hostname == "162.38.111.43" } // Sécurité: on ignore SSL que pour l'émulateur
@@ -66,7 +66,6 @@ object RetrofitInstance {
 
         val contentType = "application/json".toMediaType()
 
-        // 4. Création de l'instance Retrofit
         return Retrofit.Builder()
             .baseUrl(BASE_URL)
             .addConverterFactory(json.asConverterFactory(contentType))

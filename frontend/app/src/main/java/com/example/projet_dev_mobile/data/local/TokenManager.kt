@@ -18,7 +18,7 @@ class TokenManager(context: Context) {
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
     )
 
-    // --- NOUVELLES MÉTHODES ---
+    // --- Gestion du Rôle ---
     fun saveRole(role: RoleType) {
         prefs.edit().putString("user_role", role.name).apply()
     }
@@ -32,13 +32,14 @@ class TokenManager(context: Context) {
         }
     }
 
+    // --- Gestion des Infos Utilisateur ---
     fun saveLogin(login: String) {
         prefs.edit().putString("user_login", login).apply()
     }
 
     fun getLogin(): String? = prefs.getString("user_login", null)
 
-    // --- ANCIENNES MÉTHODES (Gardées au cas où d'autres parties du code l'utilisent) ---
+    // --- Gestion des Tokens (Session) ---
     fun saveTokens(token: String, refreshToken: String) {
         prefs.edit().putString("jwt_token", token).apply()
         prefs.edit().putString("refresh_token", refreshToken).apply()
@@ -46,6 +47,8 @@ class TokenManager(context: Context) {
 
     fun getToken(): String? = prefs.getString("jwt_token", null)
 
-    // On efface tout lors de la déconnexion
+    fun getRefreshToken(): String? = prefs.getString("refresh_token", null)
+
+    // --- Déconnexion ---
     fun clear() = prefs.edit().clear().apply()
 }

@@ -44,7 +44,7 @@ fun RegisterScreen(
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text("Adresse email") },
+            label = { Text("Nom d'utilisateur") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
