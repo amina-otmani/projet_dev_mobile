@@ -55,7 +55,7 @@ object RetrofitInstance {
                     }
                 )
 
-                val sslContext = SSLContext.getInstance("SSL")
+                val sslContext = SSLContext.getInstance("TLS")
                 sslContext.init(null, trustAllCerts, SecureRandom())
 
                 clientBuilder
