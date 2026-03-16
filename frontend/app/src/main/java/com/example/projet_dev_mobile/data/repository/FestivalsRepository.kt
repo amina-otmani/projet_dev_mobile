@@ -1,26 +1,58 @@
 package com.example.projet_dev_mobile.data.repository
 
 import com.example.projet_dev_mobile.data.entity.Festival
+import com.example.projet_dev_mobile.data.network.APIService
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 
-interface FestivalsRepository {
+class FestivalsRepository(private val apiService: APIService) {
 
-    suspend fun addFestival(festival: Festival)
+    fun getAllFestivalsStream(): Flow<List<Festival>> = flow {
+        try {
+            val response = apiService.getAllFestivals()
+            if (response.isSuccessful) {
+                emit(response.body() ?: emptyList())
+            }
+        } catch (e: Exception) {
+            emit(emptyList())
+        }
+    }
 
-    suspend fun updateFestival(festival: Festival)
+    suspend fun getFestivalById(id: Int): Festival? {
+        return try {
+            val response = apiService.getFestivalById(id)
+            if (response.isSuccessful) response.body() else null
+        } catch (e: Exception) {
+            null
+        }
+    }
 
-    suspend fun deleteFestival(festival: Festival)
+    suspend fun addFestival(festival: Festival): Boolean {
+        return try {
+            val response = apiService.addFestival(festival)
+            response.isSuccessful
+        } catch (e: Exception) {
+            false
+        }
+    }
 
-    suspend fun deleteAllFestivals()
+    suspend fun updateFestival(festival: Festival): Boolean {
+        return try {
+            val id = festival.id ?: return false
+            val response = apiService.updateFestival(id, festival)
+            response.isSuccessful
+        } catch (e: Exception) {
+            false
+        }
+    }
 
-    fun getFestivalByIdStream(id: Int): Flow<Festival?>
-
-    fun getAllFestivalsStream(): Flow<List<Festival>>
-
-    fun getActiveFestivalsStream(today: Long): Flow<List<Festival>>
-
-    fun getPastFestivalsStream(today: Long): Flow<List<Festival>>
-
-    suspend fun upsertAll(festivals: List<Festival>)
+    suspend fun deleteFestival(id: Int): Boolean {
+        return try {
+            val response = apiService.deleteFestival(id)
+            response.isSuccessful
+        } catch (e: Exception) {
+            false
+        }
+    }
 
 }

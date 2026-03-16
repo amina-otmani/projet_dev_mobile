@@ -1,14 +1,10 @@
 package com.example.projet_dev_mobile.data.entity
 
-import androidx.room.Entity
-import androidx.room.Index
-import androidx.room.PrimaryKey
+import kotlinx.serialization.Serializable
 
-// pour que le nom soit unique
-@Entity(indices = [Index(value = ["nom"], unique = true)] )
+@Serializable
 data class Festival(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int,
+    val id: Int = 0,
     val nom: String,
     val date_debut: Long,
     val date_fin: Long,

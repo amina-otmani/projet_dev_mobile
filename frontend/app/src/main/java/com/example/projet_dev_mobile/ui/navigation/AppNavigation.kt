@@ -20,6 +20,7 @@ import com.example.projet_dev_mobile.ui.screens.register.RegisterScreen
 import kotlinx.coroutines.launch
 import android.widget.Toast
 import android.util.Log
+import com.example.projet_dev_mobile.ui.screens.festival.FestivalHomeScreen
 
 object LoginDestination
 object RegisterDestination
@@ -194,7 +195,7 @@ fun AppNavigation() {
                         )
                     }
                     Destination.FESTIVAL -> NavEntry(key) {
-                        HomeScreen()
+                        FestivalHomeScreen()
                     }
                     Destination.EDITEURS -> NavEntry(key) { Text("Liste des editeurs") }
                     Destination.JEUX -> NavEntry(key) { Text("Liste des jeux") }
