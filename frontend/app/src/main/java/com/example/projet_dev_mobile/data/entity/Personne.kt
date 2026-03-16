@@ -1,0 +1,13 @@
+package com.example.projet_dev_mobile.data.entity
+
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity
+data class Personne(
+    @PrimaryKey(autoGenerate = true)
+    val id: Int,
+    val nom: String,
+    val prenom: String,
+    val email: String
+)
