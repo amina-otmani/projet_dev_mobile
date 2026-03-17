@@ -40,8 +40,11 @@ object RetrofitInstance {
                 level = HttpLoggingInterceptor.Level.BODY
             }
 
+            val authInterceptor = AuthInterceptor(tokenManager)
+
             val clientBuilder = OkHttpClient.Builder()
                 .addInterceptor(loggingInterceptor)
+                .addInterceptor(authInterceptor)
         val sslContext = SSLContext.getInstance("TLS")
 
             val isDebug = (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0

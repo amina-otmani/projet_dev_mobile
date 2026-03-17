@@ -1,28 +1,31 @@
 package com.example.projet_dev_mobile.ui.screens.festival
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.projet_dev_mobile.data.repository.FestivalsRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import java.time.Instant
 
+@RequiresApi(Build.VERSION_CODES.O)
 class FestivalHomeViewModel(private val festivalsRepository: FestivalsRepository) : ViewModel() {
 
-    // récupère la date du jour
-    private val today = System.currentTimeMillis()
+    private val today = Instant.now()
 
-    // mise à jour des festivals sans que l'user n'ait à raffraichir
-    // flux vers le haut, on attend des changements de la data base
     val homeUiState: StateFlow<FestivalHomeUiState> = festivalsRepository
         .getAllFestivalsStream()
         .map { festivals ->
-            // On trie les données reçues du serveur en deux listes
             FestivalHomeUiState(
-                activeFestivals = festivals.filter { it.date_fin >= today },
-                pastFestivals = festivals.filter { it.date_fin < today }
+                activeFestivals = festivals.filter {
+                    Instant.parse(it.date_fin).isAfter(today)
+                },
+                pastFestivals = festivals.filter {
+                    Instant.parse(it.date_fin).isBefore(today)
+                }
             )
         }
         .stateIn(
