@@ -5,7 +5,8 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.projet_dev_mobile.FestivalApplication
-import com.example.projet_dev_mobile.ui.screens.festival.FestivalHomeViewModel
+import com.example.projet_dev_mobile.ui.screens.festival.FestivalEntryViewModel
+import com.example.projet_dev_mobile.ui.screens.home.FestivalHomeViewModel
 
 object AppViewModelProvider {
     val Factory = viewModelFactory {
@@ -17,7 +18,12 @@ object AppViewModelProvider {
             )
         }
 
-        // Tu ajouteras ici les recettes pour tes autres ViewModels plus tard
+        initializer {
+            FestivalEntryViewModel(
+                // Ici, tu passes les dépendances nécessaires, par exemple :
+                festivalApplication().container.festivalsRepository
+            )
+        }
     }
 }
 

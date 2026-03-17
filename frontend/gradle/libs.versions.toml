@@ -20,6 +20,7 @@ kotlinxSerializationCore = "1.9.0"
 kotlinx-serialization = "1.10.0"
 retrofit = "3.0.0"
 lifecycleViewmodelKtx = "2.10.0"
+material3 = "1.4.0"
 
 
 [libraries]
@@ -56,6 +57,7 @@ androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifec
 
 # Navigation3
 kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref ="kotlinxSerializationCore" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 
 
 [plugins]

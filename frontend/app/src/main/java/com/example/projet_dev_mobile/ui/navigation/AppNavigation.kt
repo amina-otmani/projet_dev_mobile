@@ -13,18 +13,26 @@ import androidx.navigation3.ui.NavDisplay
 import com.example.projet_dev_mobile.data.entity.enum.RoleType
 import com.example.projet_dev_mobile.data.local.TokenManager
 import com.example.projet_dev_mobile.data.network.RetrofitInstance
-import com.example.projet_dev_mobile.ui.screens.home.HomeScreen
 import com.example.projet_dev_mobile.ui.screens.login.LoginScreen
 import com.example.projet_dev_mobile.ui.screens.pending.PendingApprovalScreen
 import com.example.projet_dev_mobile.ui.screens.register.RegisterScreen
 import kotlinx.coroutines.launch
 import android.widget.Toast
 import android.util.Log
-import com.example.projet_dev_mobile.ui.screens.festival.FestivalHomeScreen
+import com.example.projet_dev_mobile.ui.screens.home.FestivalHomeScreen
+import com.example.projet_dev_mobile.ui.screens.festival.FestivalEntryScreen
+
+
+
 
 object LoginDestination
 object RegisterDestination
 object PendingApprovalDestination
+
+// festival
+object FestivalEntryDestination
+object FestivalEditDestination
+object FestivalDetailsDestination
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -195,7 +203,14 @@ fun AppNavigation() {
                         )
                     }
                     Destination.FESTIVAL -> NavEntry(key) {
-                        FestivalHomeScreen()
+                        FestivalHomeScreen(onNavigateToEntry = {
+                            backStack.add(FestivalEntryDestination)
+                        })
+                    }
+                    FestivalEntryDestination -> NavEntry(key){
+                        FestivalEntryScreen(
+                            navigateBack = { backStack.removeLastOrNull() }
+                        )
                     }
                     Destination.EDITEURS -> NavEntry(key) { Text("Liste des editeurs") }
                     Destination.JEUX -> NavEntry(key) { Text("Liste des jeux") }

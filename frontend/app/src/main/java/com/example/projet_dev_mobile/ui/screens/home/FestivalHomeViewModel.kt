@@ -1,4 +1,4 @@
-package com.example.projet_dev_mobile.ui.screens.festival
+package com.example.projet_dev_mobile.ui.screens.home
 
 import android.os.Build
 import androidx.annotation.RequiresApi

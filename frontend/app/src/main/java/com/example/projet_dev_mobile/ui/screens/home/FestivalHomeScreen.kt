@@ -1,14 +1,14 @@
-package com.example.projet_dev_mobile.ui.screens.festival
+package com.example.projet_dev_mobile.ui.screens.home
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -19,18 +19,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.test.espresso.base.Default
 import com.example.projet_dev_mobile.ui.AppViewModelProvider
+import com.example.projet_dev_mobile.ui.screens.festival.FestivalCard
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun FestivalHomeScreen(
+    onNavigateToEntry: () -> Unit,
     viewModel: FestivalHomeViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
-    // On s'abonne à l'état du ViewModel
     val uiState by viewModel.homeUiState.collectAsState()
 
     Scaffold(
-        topBar = { }
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onNavigateToEntry,
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Ajouter un festival")
+            }
+        }
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
