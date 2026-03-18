@@ -2,9 +2,11 @@ package com.example.projet_dev_mobile.ui.screens.festival
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -18,12 +20,19 @@ import com.example.projet_dev_mobile.utils.FestivalDatePicker
 import com.example.projet_dev_mobile.utils.FormSelectionTitle
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.ui.res.dimensionResource
-import androidx.compose.ui.res.stringResource
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.example.projet_dev_mobile.R
+import com.example.projet_dev_mobile.data.entity.ZonePlan
+import com.example.projet_dev_mobile.data.entity.ZoneTarifaire
+import com.example.projet_dev_mobile.ui.screens.zoneTarifaire.ZoneTarifaireItem
 
 
 @Composable
@@ -46,6 +55,15 @@ fun FestivalEntryScreen(
                     navigateBack()
                 }
             },
+
+            onAddZoneT = viewModel::addEmptyZoneT,
+            onDeleteZoneT = viewModel::deleteZoneT,
+            onUpdateZoneT = viewModel::updateZoneT,
+
+            onAddZoneP = viewModel::addZPtoZT,
+            onDeleteZoneP = viewModel::deleteZPfromZT,
+            onUpdateZoneP = viewModel::updateZPinZT,
+
             modifier = Modifier
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
@@ -60,6 +78,15 @@ fun FestivalEntryBody(
     festivalUiState: FestivalUiState,
     onFestivalValueChange: (FestivalDetails) -> Unit,
     onSaveClick: () -> Unit,
+
+    onAddZoneT: () -> Unit,
+    onDeleteZoneT: (Int) -> Unit,
+    onUpdateZoneT: (Int, ZoneTarifaire) -> Unit,
+
+    onAddZoneP: (Int) -> Unit,
+    onDeleteZoneP: (Int, Int) -> Unit,
+    onUpdateZoneP: (Int, Int, ZonePlan) -> Unit,
+
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -69,7 +96,16 @@ fun FestivalEntryBody(
         FestivalInputForm(
             festivalDetails = festivalUiState.festivalDetails,
             onValueChange = onFestivalValueChange,
-            modifier = Modifier.fillMaxWidth()
+
+            onAddZoneT = onAddZoneT,
+            onDeleteZoneT = onDeleteZoneT,
+            onUpdateZoneT = onUpdateZoneT,
+
+            onAddZoneP = onAddZoneP,
+            onDeleteZoneP = onDeleteZoneP,
+            onUpdateZoneP = onUpdateZoneP,
+
+            modifier = Modifier.fillMaxWidth(),
         )
         Button(
             onClick = onSaveClick,
@@ -87,6 +123,15 @@ fun FestivalInputForm(
     festivalDetails: FestivalDetails,
     modifier: Modifier = Modifier,
     onValueChange: (FestivalDetails) -> Unit = {},
+
+    onAddZoneT: () -> Unit,
+    onDeleteZoneT: (Int) -> Unit,
+    onUpdateZoneT: (Int, ZoneTarifaire) -> Unit,
+
+    onAddZoneP: (Int) -> Unit,
+    onDeleteZoneP: (Int, Int) -> Unit,
+    onUpdateZoneP: (Int, Int, ZonePlan) -> Unit,
+
     enabled: Boolean = true
 ) {
     Column(
@@ -104,47 +149,86 @@ fun FestivalInputForm(
             singleLine = true,
             enabled = enabled
         )
-        FestivalDatePicker(
-            label = "Date de début",
-            selectedDate = festivalDetails.date_debut,
-            onDateSelected = { onValueChange(festivalDetails.copy(date_debut = it)) }
-        )
-        FestivalDatePicker(
-            label = "Date de fin",
-            selectedDate = festivalDetails.date_fin,
-            onDateSelected = { onValueChange(festivalDetails.copy(date_fin = it)) }
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            FestivalDatePicker(
+                label = "Date de début",
+                selectedDate = festivalDetails.date_debut,
+                onDateSelected = { onValueChange(festivalDetails.copy(date_debut = it)) },
+                modifier = Modifier.weight(1f)
+            )
+            FestivalDatePicker(
+                label = "Date de fin",
+                selectedDate = festivalDetails.date_fin,
+                onDateSelected = { onValueChange(festivalDetails.copy(date_fin = it)) },
+                modifier = Modifier.weight(1f)
+            )
+        }
+
 
         Spacer(modifier = Modifier.padding(16.dp))
 
         // PARTIE 2 form
         FormSelectionTitle("Détails des Tables")
-        OutlinedTextField(
-            value = festivalDetails.stock_tables_petites.toString(),
-            onValueChange = { onValueChange(festivalDetails.copy(stock_tables_petites = it.toIntOrNull() ?: 0)) },
-            label = { Text("Nombre de petites tables") },
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            enabled = enabled
-        )
-        OutlinedTextField(
-            value = festivalDetails.stock_tables_grandes.toString(),
-            onValueChange = { onValueChange(festivalDetails.copy(stock_tables_petites = it.toIntOrNull() ?: 0)) },
-            label = { Text("Nombre de grandes tables") },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = enabled
-        )
-        OutlinedTextField(
-            value = festivalDetails.stock_tables_mairie.toString(),
-            onValueChange = { onValueChange(festivalDetails.copy(stock_tables_petites = it.toIntOrNull() ?: 0)) },
-            label = { Text("Nombre de tables mairie") },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = enabled
-        )
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            OutlinedTextField(
+                value = festivalDetails.stock_tables_petites.toString(),
+                onValueChange = { onValueChange(festivalDetails.copy(stock_tables_petites = it.toIntOrNull() ?: 0)) },
+                label = { Text("Petites") },
+                modifier = Modifier.weight(1f),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                enabled = enabled
+            )
+            OutlinedTextField(
+                value = festivalDetails.stock_tables_grandes.toString(),
+                onValueChange = { onValueChange(festivalDetails.copy(stock_tables_grandes = it.toIntOrNull() ?: 0)) },
+                label = { Text("Grandes") },
+                modifier = Modifier.weight(1f),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                enabled = enabled
+            )
+            OutlinedTextField(
+                value = festivalDetails.stock_tables_mairie.toString(),
+                onValueChange = { onValueChange(festivalDetails.copy(stock_tables_mairie = it.toIntOrNull() ?: 0)) },
+                label = { Text("Mairie") },
+                modifier = Modifier.weight(1f),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                enabled = enabled
+            )
+        }
+
 
         Spacer(modifier = Modifier.padding(16.dp))
 
         // PARTIE 3 form
         FormSelectionTitle("Zones Tarifaires")
+
+        // affichage des zones déjà affichées
+        festivalDetails.zonesTarifaires.forEachIndexed { index, zone ->
+            ZoneTarifaireItem(
+                zoneT = zone,
+                indexZT = index,
+                onDelete = { onDeleteZoneT(index) },
+                onUpdate = { updatedZone -> onUpdateZoneT(index, updatedZone) },
+                onAddZP = onAddZoneP,
+                onDeleteZP = onDeleteZoneP,
+                onUpdateZP = onUpdateZoneP
+            )
+        }
+        TextButton(
+            onClick = onAddZoneT,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text("Ajouter une zone tarifaire")
+        }
 
 
 

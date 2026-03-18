@@ -24,21 +24,18 @@ interface APIService {
     suspend fun whoami(): Response<LoginResponse>
 
     // --- FESTIVAL ---
-
     @GET("festivals")
     suspend fun getAllFestivals(): Response<List<Festival>>
-
     @GET("festivals/{id}")
     suspend fun getFestivalById(@Path("id") id: Int): Response<Festival>
-
     @POST("festivals")
     suspend fun addFestival(@Body festival: Festival): Response<Unit>
-
     @PUT("festivals/{id}")
     suspend fun updateFestival(@Path("id") id: Int, @Body festival: Festival): Response<Unit>
-
     @DELETE("festivals/{id}")
     suspend fun deleteFestival(@Path("id") id: Int): Response<Unit>
+
+    // --- ZONE TARIFAIRE ---
 
 
 }

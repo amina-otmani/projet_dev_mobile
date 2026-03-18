@@ -6,9 +6,70 @@ import androidx.compose.runtime.getValue
 
 import androidx.lifecycle.ViewModel
 import com.example.projet_dev_mobile.data.entity.Festival
+import com.example.projet_dev_mobile.data.entity.ZonePlan
+import com.example.projet_dev_mobile.data.entity.ZoneTarifaire
 import com.example.projet_dev_mobile.data.repository.FestivalsRepository
 
 class FestivalEntryViewModel(private val festivalsRepository: FestivalsRepository) : ViewModel() {
+
+    // --- ZONE TARIFAIRE ---
+    fun addEmptyZoneT() {
+        val currentZones = festivalUiState.festivalDetails.zonesTarifaires
+        val newZone = ZoneTarifaire(nom = "", prixTable = 0.0, prixM2 = 0.0)
+
+        updateUiState(festivalUiState.festivalDetails.copy(
+            zonesTarifaires = currentZones + newZone
+        ))
+    }
+    fun deleteZoneT(index: Int) {
+        val currentZones = festivalUiState.festivalDetails.zonesTarifaires.toMutableList()
+        currentZones.removeAt(index)
+
+        updateUiState(festivalUiState.festivalDetails.copy(
+            zonesTarifaires = currentZones
+        ))
+    }
+    fun updateZoneT(index: Int, updatedZoneT: ZoneTarifaire) {
+        val currentZT = festivalUiState.festivalDetails.zonesTarifaires.toMutableList()
+        currentZT[index] = updatedZoneT
+
+        updateUiState(festivalUiState.festivalDetails.copy(
+            zonesTarifaires = currentZT
+        ))
+    }
+
+
+    // --- ZONE PLAN ---
+    fun addZPtoZT(indexZT: Int) {
+        val currentZT = festivalUiState.festivalDetails.zonesTarifaires.toMutableList()
+        val zone = currentZT[indexZT]
+
+        val newZP = ZonePlan(nom = "", nbTables = 0)
+        currentZT[indexZT] = zone.copy(zonesPlan = zone.zonesPlan + newZP)
+
+        updateUiState(festivalUiState.festivalDetails.copy(zonesTarifaires = currentZT))
+    }
+    fun updateZPinZT(indexZT: Int, indexZP: Int, updatedZP: ZonePlan) {
+        val currentZT = festivalUiState.festivalDetails.zonesTarifaires.toMutableList()
+        val zone = currentZT[indexZT]
+        val currentZPs = zone.zonesPlan.toMutableList()
+
+        currentZPs[indexZP] = updatedZP
+        currentZT[indexZT] = zone.copy(zonesPlan = currentZPs)
+
+        updateUiState(festivalUiState.festivalDetails.copy(zonesTarifaires = currentZT))
+    }
+    fun deleteZPfromZT(indexZT: Int, indexZP: Int) {
+        val currentZT = festivalUiState.festivalDetails.zonesTarifaires.toMutableList()
+        val zone = currentZT[indexZT]
+        val currentZPs = zone.zonesPlan.toMutableList()
+
+        currentZPs.removeAt(indexZP)
+        currentZT[indexZT] = zone.copy(zonesPlan = currentZPs)
+
+        updateUiState(festivalUiState.festivalDetails.copy(zonesTarifaires = currentZT))
+    }
+
     var festivalUiState by mutableStateOf(FestivalUiState())
         private set
 
@@ -43,7 +104,9 @@ data class FestivalDetails(
 
     val stock_tables_petites: Int = 0,
     val stock_tables_grandes: Int = 0,
-    val stock_tables_mairie: Int = 0
+    val stock_tables_mairie: Int = 0,
+
+    val zonesTarifaires: List<ZoneTarifaire> = emptyList()
 )
 
 fun FestivalDetails.toFestival(): Festival = Festival(
