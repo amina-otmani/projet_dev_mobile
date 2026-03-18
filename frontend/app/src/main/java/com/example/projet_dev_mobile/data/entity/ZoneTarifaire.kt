@@ -13,10 +13,10 @@ data class ZoneTarifaire(
 
     val nom: String,
 
-    @SerialName("prix_table")
+    @SerialName("prixTable")
     val prixTable: Double,
 
-    @SerialName("prix_m2")
+    @SerialName("prixM2")
     val prixM2: Double,
 
     @SerialName("zonesPlan")

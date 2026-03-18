@@ -14,6 +14,6 @@ data class ZonePlan(
 
     val nom: String,
 
-    @SerialName("nombre_tables")
+    @SerialName("nbTables")
     val nbTables: Int
 )

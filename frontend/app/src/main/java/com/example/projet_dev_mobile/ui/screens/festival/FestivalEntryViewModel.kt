@@ -113,5 +113,11 @@ fun FestivalDetails.toFestival(): Festival = Festival(
     id = id,
     nom = nom,
     date_debut = date_debut,
-    date_fin = date_fin
+    date_fin = date_fin,
+
+    stock_tables_mairie = stock_tables_mairie,
+    stock_tables_petites = stock_tables_petites,
+    stock_tables_grandes = stock_tables_grandes,
+
+    zonesTarifaires = zonesTarifaires
 )

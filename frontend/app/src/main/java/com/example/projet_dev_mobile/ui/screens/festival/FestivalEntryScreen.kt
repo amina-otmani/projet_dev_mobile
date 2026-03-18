@@ -231,7 +231,6 @@ fun FestivalInputForm(
         }
 
 
-
         if (enabled) {
             Text(
                 text = "*Champs obligatoires",
