@@ -3,6 +3,7 @@ package com.example.projet_dev_mobile.data.network
 import com.example.projet_dev_mobile.data.entity.Festival
 import com.example.projet_dev_mobile.data.network.dto.LoginRequest
 import com.example.projet_dev_mobile.data.network.dto.LoginResponse
+import  com.example.projet_dev_mobile.data.network.dto.FestivalDto
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -24,14 +25,19 @@ interface APIService {
     suspend fun whoami(): Response<LoginResponse>
 
     // --- FESTIVAL ---
+
     @GET("festivals")
-    suspend fun getAllFestivals(): Response<List<Festival>>
+    suspend fun getAllFestivals(): Response<List<FestivalDto>>
+
     @GET("festivals/{id}")
-    suspend fun getFestivalById(@Path("id") id: Int): Response<Festival>
+    suspend fun getFestivalById(@Path("id") id: Int): Response<FestivalDto>
+
     @POST("festivals")
-    suspend fun addFestival(@Body festival: Festival): Response<Unit>
+    suspend fun addFestival(@Body festival: FestivalDto): Response<Unit>
+
     @PUT("festivals/{id}")
-    suspend fun updateFestival(@Path("id") id: Int, @Body festival: Festival): Response<Unit>
+    suspend fun updateFestival(@Path("id") id: Int, @Body festival: FestivalDto): Response<Unit>
+
     @DELETE("festivals/{id}")
     suspend fun deleteFestival(@Path("id") id: Int): Response<Unit>
 

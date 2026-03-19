@@ -2,6 +2,7 @@ package com.example.projet_dev_mobile.data.repository
 
 import com.example.projet_dev_mobile.data.entity.Festival
 import com.example.projet_dev_mobile.data.network.APIService
+import com.example.projet_dev_mobile.data.network.dto.toDto
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
@@ -11,7 +12,8 @@ class FestivalsRepository(private val apiService: APIService) {
         try {
             val response = apiService.getAllFestivals()
             if (response.isSuccessful) {
-                emit(response.body() ?: emptyList())
+                val dtos = response.body() ?: emptyList()
+                emit(dtos.map { it.toEntity() })
             }
         } catch (e: Exception) {
             emit(emptyList())
@@ -21,7 +23,11 @@ class FestivalsRepository(private val apiService: APIService) {
     suspend fun getFestivalById(id: Int): Festival? {
         return try {
             val response = apiService.getFestivalById(id)
-            if (response.isSuccessful) response.body() else null
+            if (response.isSuccessful) {
+                response.body()?.toEntity()
+            } else {
+                null
+            }
         } catch (e: Exception) {
             null
         }
@@ -29,7 +35,7 @@ class FestivalsRepository(private val apiService: APIService) {
 
     suspend fun addFestival(festival: Festival): Boolean {
         return try {
-            val response = apiService.addFestival(festival)
+            val response = apiService.addFestival(festival.toDto())
             response.isSuccessful
         } catch (e: Exception) {
             false
@@ -38,8 +44,7 @@ class FestivalsRepository(private val apiService: APIService) {
 
     suspend fun updateFestival(festival: Festival): Boolean {
         return try {
-            val id = festival.id ?: return false
-            val response = apiService.updateFestival(id, festival)
+            val response = apiService.updateFestival(festival.id, festival.toDto())
             response.isSuccessful
         } catch (e: Exception) {
             false
@@ -54,5 +59,4 @@ class FestivalsRepository(private val apiService: APIService) {
             false
         }
     }
-
 }
