@@ -19,6 +19,10 @@ import com.example.projet_dev_mobile.ui.screens.register.RegisterScreen
 import kotlinx.coroutines.launch
 import android.widget.Toast
 import android.util.Log
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.projet_dev_mobile.ui.AppViewModelProvider
+import com.example.projet_dev_mobile.ui.screens.festival.FestivalDetailsScreen
+import com.example.projet_dev_mobile.ui.screens.festival.FestivalDetailsViewModel
 import com.example.projet_dev_mobile.ui.screens.home.FestivalHomeScreen
 import com.example.projet_dev_mobile.ui.screens.festival.FestivalEntryScreen
 
@@ -32,7 +36,7 @@ object PendingApprovalDestination
 // festival
 object FestivalEntryDestination
 object FestivalEditDestination
-object FestivalDetailsDestination
+data class FestivalDetailsDestination(val id: Int)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -203,9 +207,25 @@ fun AppNavigation() {
                         )
                     }
                     Destination.FESTIVAL -> NavEntry(key) {
-                        FestivalHomeScreen(onNavigateToEntry = {
-                            backStack.add(FestivalEntryDestination)
-                        })
+                        FestivalHomeScreen(
+                            onNavigateToEntry = { backStack.add(FestivalEntryDestination)},
+                            onFestivalClick = { festivalId ->
+                                backStack.add(FestivalDetailsDestination(festivalId))
+                            }
+                        )
+                    }
+                    is FestivalDetailsDestination -> {
+                        val destination = key  // capture the typed key outside NavEntry
+                        NavEntry(destination) {
+                            val viewModel: FestivalDetailsViewModel = viewModel(
+                                key = "festival_${destination.id}",
+                                factory = AppViewModelProvider.festivalDetailsFactory(destination.id)
+                            )
+                            FestivalDetailsScreen(
+                                onBack = { backStack.removeLastOrNull() },
+                                viewModel = viewModel
+                            )
+                        }
                     }
                     FestivalEntryDestination -> NavEntry(key){
                         FestivalEntryScreen(

@@ -1,10 +1,12 @@
 package com.example.projet_dev_mobile.ui
 
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.projet_dev_mobile.FestivalApplication
+import com.example.projet_dev_mobile.ui.screens.festival.FestivalDetailsViewModel
 import com.example.projet_dev_mobile.ui.screens.festival.FestivalEntryViewModel
 import com.example.projet_dev_mobile.ui.screens.home.FestivalHomeViewModel
 
@@ -22,6 +24,24 @@ object AppViewModelProvider {
             FestivalEntryViewModel(
                 // Ici, tu passes les dépendances nécessaires, par exemple :
                 festivalApplication().container.festivalsRepository
+            )
+        }
+
+        /*
+        initializer {
+            FestivalDetailsViewModel(
+                savedStateHandle = this.createSavedStateHandle(),
+                festivalsRepository = festivalApplication().container.festivalsRepository
+            )
+        }
+
+         */
+    }
+    fun festivalDetailsFactory(festivalId: Int) = viewModelFactory {
+        initializer {
+            FestivalDetailsViewModel(
+                festivalId = festivalId,
+                festivalsRepository = festivalApplication().container.festivalsRepository
             )
         }
     }

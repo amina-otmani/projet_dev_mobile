@@ -27,6 +27,7 @@ import com.example.projet_dev_mobile.ui.screens.festival.FestivalCard
 @Composable
 fun FestivalHomeScreen(
     onNavigateToEntry: () -> Unit,
+    onFestivalClick: (Int) -> Unit,
     viewModel: FestivalHomeViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     val uiState by viewModel.homeUiState.collectAsState()
@@ -50,7 +51,10 @@ fun FestivalHomeScreen(
             if (uiState.activeFestivals.isNotEmpty()) {
                 item { Text("Festivals à venir", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(vertical = 16.dp)) }
                 items(uiState.activeFestivals) { festival ->
-                    FestivalCard(festival = festival)
+                    FestivalCard(
+                        festival = festival,
+                        onClick = { onFestivalClick(festival.id) }
+                    )
                 }
             }
 
@@ -60,7 +64,8 @@ fun FestivalHomeScreen(
                 items(uiState.pastFestivals) { festival ->
                     FestivalCard(
                         festival = festival,
-                        modifier = Modifier.alpha(0.6f) // On grise un peu pour le côté "archive"
+                        modifier = Modifier.alpha(0.6f),
+                        onClick = { onFestivalClick(festival.id) }
                     )
                 }
             }
