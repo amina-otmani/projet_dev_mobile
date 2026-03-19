@@ -2,6 +2,7 @@ package com.example.projet_dev_mobile.data.network
 
 import com.example.projet_dev_mobile.data.network.dto.LoginRequest
 import com.example.projet_dev_mobile.data.network.dto.LoginResponse
+import com.example.projet_dev_mobile.data.network.dto.JeuDto
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST
@@ -16,4 +17,16 @@ interface APIService {
 
     @GET("auth/whoami")
     suspend fun whoami(): Response<LoginResponse>
+
+    // --- JEUX ---
+    @GET("jeux")
+    suspend fun getAllJeux(): Response<List<JeuDto>>
+
+    // Si tu as besoin de récupérer les jeux d'un festival précis
+    @GET("festivals/{id}/jeux")
+    suspend fun getJeuxByFestival(@Path("id") festivalId: Int): Response<List<JeuDto>>
+
+    // Si tu as besoin de récupérer les jeux d'un éditeur précis
+    @GET("editeurs/{id}/jeux")
+    suspend fun getJeuxByEditeur(@Path("id") editeurId: Int): Response<List<JeuDto>>
 }
