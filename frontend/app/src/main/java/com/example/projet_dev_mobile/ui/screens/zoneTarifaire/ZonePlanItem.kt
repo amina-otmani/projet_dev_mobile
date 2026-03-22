@@ -55,10 +55,10 @@ fun ZonePlanItem(
                 )
 
                 OutlinedTextField(
-                    value = if (zone.nbTables == 0) "" else zone.nbTables.toString(),
+                    value = if (zone.nombre_tables == 0) "" else zone.nombre_tables.toString(),
                     onValueChange = { newValue: String ->
                         val nb = newValue.toIntOrNull() ?: 0
-                        onUpdate(zone.copy(nbTables = nb))
+                        onUpdate(zone.copy(nombre_tables = nb))
                     },
                     label = { Text(
                         text = "Nb de tables",

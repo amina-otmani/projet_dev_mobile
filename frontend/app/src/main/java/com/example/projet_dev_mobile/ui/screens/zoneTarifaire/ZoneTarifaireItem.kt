@@ -64,11 +64,11 @@ fun ZoneTarifaireItem(
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
-                    value = if (zoneT.prixTable == 0.0) "" else zoneT.prixTable.toString(),
+                    value = if (zoneT.prix_table == 0.0) "" else zoneT.prix_table.toString(),
                     onValueChange = { newValue: String ->
                         val sanitizedValue = newValue.replace(',', '.')
                         val price = sanitizedValue.toDoubleOrNull() ?: 0.0
-                        onUpdate(zoneT.copy(prixTable = price))
+                        onUpdate(zoneT.copy(prix_table = price))
                     },
                     label = { Text("Prix Table (€)") },
                     modifier = Modifier.weight(1f),
@@ -76,11 +76,11 @@ fun ZoneTarifaireItem(
                 )
 
                 OutlinedTextField(
-                    value = if (zoneT.prixM2 == 0.0) "" else zoneT.prixM2.toString(),
+                    value = if (zoneT.prix_m2 == 0.0) "" else zoneT.prix_m2.toString(),
                     onValueChange = { newValue: String ->
                         val sanitizedValue = newValue.replace(',', '.')
                         val priceM = sanitizedValue.toDoubleOrNull() ?: 0.0
-                        onUpdate(zoneT.copy(prixM2 = priceM))
+                        onUpdate(zoneT.copy(prix_m2 = priceM))
                     },
                     label = { Text("Prix m² (€)") },
                     modifier = Modifier.weight(1f),

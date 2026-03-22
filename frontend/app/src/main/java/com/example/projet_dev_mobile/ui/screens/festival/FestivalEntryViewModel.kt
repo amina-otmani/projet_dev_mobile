@@ -15,7 +15,7 @@ class FestivalEntryViewModel(private val festivalsRepository: FestivalsRepositor
     // --- ZONE TARIFAIRE ---
     fun addEmptyZoneT() {
         val currentZones = festivalUiState.festivalDetails.zonesTarifaires
-        val newZone = ZoneTarifaire(nom = "", prixTable = 0.0, prixM2 = 0.0)
+        val newZone = ZoneTarifaire(nom = "", prix_table = 0.0, prix_m2 = 0.0)
 
         updateUiState(festivalUiState.festivalDetails.copy(
             zonesTarifaires = currentZones + newZone
@@ -44,7 +44,7 @@ class FestivalEntryViewModel(private val festivalsRepository: FestivalsRepositor
         val currentZT = festivalUiState.festivalDetails.zonesTarifaires.toMutableList()
         val zone = currentZT[indexZT]
 
-        val newZP = ZonePlan(nom = "", nbTables = 0)
+        val newZP = ZonePlan(nom = "", nombre_tables = 0)
         currentZT[indexZT] = zone.copy(zonesPlan = zone.zonesPlan + newZP)
 
         updateUiState(festivalUiState.festivalDetails.copy(zonesTarifaires = currentZT))

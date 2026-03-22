@@ -13,7 +13,7 @@ data class ZonePlanDTO(
         return ZonePlan(
             id = this.id,
             nom = this.nom,
-            nbTables = this.nbTables
+            nombre_tables = this.nbTables
         )
     }
 }
@@ -22,6 +22,6 @@ fun ZonePlan.toDto(): ZonePlanDTO {
     return ZonePlanDTO(
         id = this.id,
         nom = this.nom,
-        nbTables = this.nbTables
+        nbTables = this.nombre_tables
     )
 }
