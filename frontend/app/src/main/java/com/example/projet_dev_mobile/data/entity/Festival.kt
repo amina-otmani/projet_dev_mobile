@@ -8,7 +8,9 @@ data class Festival(
 
     val stock_tables_petites: Int = 0,
     val stock_tables_grandes: Int = 0,
-    val stock_tables_mairie: Int = 0
+    val stock_tables_mairie: Int = 0,
+
+    val zonesTarifaires: List<ZoneTarifaire> = emptyList()
 ) {
     val totalTables: Int
         get() = stock_tables_petites + stock_tables_grandes + stock_tables_mairie

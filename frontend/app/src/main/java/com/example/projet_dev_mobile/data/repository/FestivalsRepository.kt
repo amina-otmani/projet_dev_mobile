@@ -13,9 +13,14 @@ class FestivalsRepository(private val apiService: APIService) {
             val response = apiService.getAllFestivals()
             if (response.isSuccessful) {
                 val dtos = response.body() ?: emptyList()
+                println("REPO_DEBUG: DTOs reçus = ${dtos.size}") // Vérifie ce chiffre
                 emit(dtos.map { it.toEntity() })
+            } else {
+                println("REPO_DEBUG: Erreur API ${response.code()}")
             }
         } catch (e: Exception) {
+            println("REPO_DEBUG: CRASH MAPPING -> ${e.message}") // C'est sûrement ici !
+            e.printStackTrace()
             emit(emptyList())
         }
     }

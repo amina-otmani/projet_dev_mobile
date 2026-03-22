@@ -13,6 +13,7 @@ class AuthInterceptor(private val tokenManager: TokenManager) : Interceptor {
         if (!token.isNullOrEmpty()) {
             requestBuilder.addHeader("Cookie", "access_token=$token")
         }
+        println("NETWORK_DEBUG: Sending token: $token")
 
         return chain.proceed(requestBuilder.build())
     }
