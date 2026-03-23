@@ -19,10 +19,6 @@ import com.example.projet_dev_mobile.ui.screens.register.RegisterScreen
 import kotlinx.coroutines.launch
 import android.widget.Toast
 import android.util.Log
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.projet_dev_mobile.ui.AppViewModelProvider
-import com.example.projet_dev_mobile.ui.screens.festival.FestivalDetailsScreen
-import com.example.projet_dev_mobile.ui.screens.festival.FestivalDetailsViewModel
 import com.example.projet_dev_mobile.ui.screens.home.FestivalHomeScreen
 import com.example.projet_dev_mobile.ui.screens.festival.FestivalEntryScreen
 
@@ -35,7 +31,6 @@ object PendingApprovalDestination
 
 // festival
 object FestivalEntryDestination
-object FestivalEditDestination
 data class FestivalDetailsDestination(val id: Int)
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,14 +59,17 @@ fun AppNavigation() {
     }
 
     val currentDestination = backStack.lastOrNull()
-
+    val isFestivalScreen = backStack.isInFestivalContext()
     val isAuthScreen = currentDestination == LoginDestination ||
             currentDestination == RegisterDestination ||
             currentDestination == PendingApprovalDestination
+    val hideChrome = isAuthScreen ||
+            isFestivalScreen ||
+            currentDestination == FestivalEntryDestination
 
     Scaffold(
         topBar = {
-            if (!isAuthScreen) {
+            if (!isAuthScreen && !isFestivalScreen) {
                 CenterAlignedTopAppBar(
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -105,7 +103,7 @@ fun AppNavigation() {
             }
         },
         bottomBar = {
-            if (!isAuthScreen) {
+            if (!hideChrome) {
                 BottomAppBar(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.primary,
@@ -140,7 +138,8 @@ fun AppNavigation() {
         NavDisplay(
             backStack = backStack,
             onBack = { backStack.removeLastOrNull() },
-            modifier = Modifier.padding(innerPadding),
+            // car FestivalDestination a deja un innerPadding
+            modifier = if (isFestivalScreen) Modifier else Modifier.padding(innerPadding),
             entryProvider = { key ->
                 when (key) {
                     LoginDestination -> NavEntry(key) {
@@ -215,15 +214,11 @@ fun AppNavigation() {
                         )
                     }
                     is FestivalDetailsDestination -> {
-                        val destination = key  // capture the typed key outside NavEntry
+                        val destination = key
                         NavEntry(destination) {
-                            val viewModel: FestivalDetailsViewModel = viewModel(
-                                key = "festival_${destination.id}",
-                                factory = AppViewModelProvider.festivalDetailsFactory(destination.id)
-                            )
-                            FestivalDetailsScreen(
-                                onBack = { backStack.removeLastOrNull() },
-                                viewModel = viewModel
+                            FestivalNavigation(
+                                festivalId = destination.id,
+                                onBack = { backStack.removeLastOrNull() }
                             )
                         }
                     }

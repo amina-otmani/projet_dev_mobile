@@ -24,36 +24,15 @@ import androidx.compose.ui.Modifier
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FestivalDetailsScreen(
-    onBack: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: FestivalDetailsViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text(uiState.festival?.nom  ?: "Détails du festival") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Retour"
-                        )
-                    }
-                }
-            )
-        },
-        modifier = modifier
-    ) {
-        innerPadding ->
-        FestivalDetailsBody(
-            uiState = uiState,
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-        )
-    }
+    FestivalDetailsBody(
+        uiState = uiState,
+        modifier = modifier.fillMaxSize()
+    )
 }
 
 @Composable
