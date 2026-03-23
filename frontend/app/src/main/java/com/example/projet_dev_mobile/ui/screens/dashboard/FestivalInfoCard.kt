@@ -1,4 +1,4 @@
-package com.example.projet_dev_mobile.ui.screens.festival
+package com.example.projet_dev_mobile.ui.screens.dashboard
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

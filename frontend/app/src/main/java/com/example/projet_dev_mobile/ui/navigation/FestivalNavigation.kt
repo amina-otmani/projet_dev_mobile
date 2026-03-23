@@ -15,8 +15,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Scaffold
@@ -37,9 +35,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.ui.NavDisplay
 import com.example.projet_dev_mobile.ui.AppViewModelProvider
-import com.example.projet_dev_mobile.ui.screens.festival.FestivalDetailsScreen
-import com.example.projet_dev_mobile.ui.screens.festival.FestivalDetailsViewModel
-import com.example.projet_dev_mobile.ui.screens.home.FestivalHomeScreen
+import com.example.projet_dev_mobile.ui.screens.dashboard.FestivalDetailsScreen
+import com.example.projet_dev_mobile.ui.screens.dashboard.FestivalDetailsViewModel
 import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)

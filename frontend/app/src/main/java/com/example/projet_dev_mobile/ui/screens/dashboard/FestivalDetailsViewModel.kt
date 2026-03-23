@@ -1,6 +1,5 @@
-package com.example.projet_dev_mobile.ui.screens.festival
+package com.example.projet_dev_mobile.ui.screens.dashboard
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.projet_dev_mobile.data.entity.Festival
