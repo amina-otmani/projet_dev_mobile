@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -29,6 +30,7 @@ import com.example.projet_dev_mobile.ui.AppViewModelProvider
 @Composable
 fun EditeursScreen(
     modifier: Modifier = Modifier,
+    onEditeurClick: (EditeurDto) -> Unit = {},
     viewModel: EditeursViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -49,7 +51,8 @@ fun EditeursScreen(
                 allEditeurs = uiState.editeurs,
                 editeurs = uiState.filteredEditeurs,
                 searchQuery = uiState.searchQuery,
-                onSearchQueryChange = viewModel::onSearchQueryChange
+                onSearchQueryChange = viewModel::onSearchQueryChange,
+                onEditeurClick = onEditeurClick
             )
         }
     }
@@ -60,7 +63,8 @@ private fun EditeursContent(
     allEditeurs: List<EditeurDto>,
     editeurs: List<EditeurDto>,
     searchQuery: String,
-    onSearchQueryChange: (String) -> Unit
+    onSearchQueryChange: (String) -> Unit,
+    onEditeurClick: (EditeurDto) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -96,14 +100,18 @@ private fun EditeursContent(
         }
 
         items(editeurs, key = { it.id }) { editeur ->
-            EditeurCard(editeur = editeur)
+            EditeurCard(editeur = editeur, onClick = { onEditeurClick(editeur) })
         }
     }
 }
 
 @Composable
-private fun EditeurCard(editeur: EditeurDto) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+private fun EditeurCard(editeur: EditeurDto, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+    ) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
