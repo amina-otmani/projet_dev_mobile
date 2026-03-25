@@ -1,20 +1,19 @@
 package com.example.projet_dev_mobile.data.entity
 
-import androidx.room.Entity
-import androidx.room.ForeignKey
-import androidx.room.Index
-import androidx.room.PrimaryKey
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-@Entity(
-    foreignKeys = [
-        ForeignKey(entity = ZoneTarifaire::class, parentColumns = ["id"], childColumns = ["zone_tarifaire_id"], onDelete = ForeignKey.CASCADE)
-    ],
-    indices = [Index("zone_tarifaire_id")]
-)
+
+@Serializable
 data class ZonePlan(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int,
-    val zone_tarifaire_id: Int,
+    @SerialName("id")
+    val id: Int = 0,
+
+    @SerialName("zone_tarifaire_id")
+    val zoneTarifaireId: Int = 0,
+
     val nom: String,
+
+    @SerialName("nbTables")
     val nombre_tables: Int
 )

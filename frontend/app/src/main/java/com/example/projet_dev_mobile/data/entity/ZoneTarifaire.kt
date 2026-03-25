@@ -1,21 +1,24 @@
 package com.example.projet_dev_mobile.data.entity
 
-import androidx.room.Entity
-import androidx.room.ForeignKey
-import androidx.room.Index
-import androidx.room.PrimaryKey
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-@Entity(
-    foreignKeys = [
-        ForeignKey(entity = Festival::class, parentColumns = ["id"], childColumns = ["festival_id"], onDelete = ForeignKey.CASCADE)
-    ],
-    indices = [Index("festival_id")]
-)
+@Serializable
 data class ZoneTarifaire(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int,
-    val festival_id: Int,
+    @SerialName("id")
+    val id: Int = 0,
+
+    @SerialName("festival_id")
+    val festivalId: Int = 0,
+
     val nom: String,
+
+    @SerialName("prixTable")
     val prix_table: Double,
-    val prix_m2: Double
+
+    @SerialName("prixM2")
+    val prix_m2: Double,
+
+    @SerialName("zonesPlan")
+    val zonesPlan: List<ZonePlan> = emptyList()
 )

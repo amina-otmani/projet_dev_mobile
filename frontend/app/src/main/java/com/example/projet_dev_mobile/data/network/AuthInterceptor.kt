@@ -13,7 +13,6 @@ class AuthInterceptor(private val tokenManager: TokenManager) : Interceptor {
         if (!token.isNullOrEmpty()) {
             requestBuilder.addHeader("Cookie", "access_token=$token")
         }
-
         return chain.proceed(requestBuilder.build())
     }
 }

@@ -13,17 +13,25 @@ import androidx.navigation3.ui.NavDisplay
 import com.example.projet_dev_mobile.data.entity.enum.RoleType
 import com.example.projet_dev_mobile.data.local.TokenManager
 import com.example.projet_dev_mobile.data.network.RetrofitInstance
-import com.example.projet_dev_mobile.ui.screens.home.HomeScreen
 import com.example.projet_dev_mobile.ui.screens.login.LoginScreen
 import com.example.projet_dev_mobile.ui.screens.pending.PendingApprovalScreen
 import com.example.projet_dev_mobile.ui.screens.register.RegisterScreen
 import kotlinx.coroutines.launch
 import android.widget.Toast
 import android.util.Log
+import com.example.projet_dev_mobile.ui.screens.home.FestivalHomeScreen
+import com.example.projet_dev_mobile.ui.screens.festival.FestivalEntryScreen
+
+
+
 
 object LoginDestination
 object RegisterDestination
 object PendingApprovalDestination
+
+// festival
+object FestivalEntryDestination
+data class FestivalDetailsDestination(val id: Int)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,14 +59,16 @@ fun AppNavigation() {
     }
 
     val currentDestination = backStack.lastOrNull()
-
+    val isFestivalScreen = backStack.isInFestivalContext() ||
+            currentDestination == FestivalEntryDestination
     val isAuthScreen = currentDestination == LoginDestination ||
             currentDestination == RegisterDestination ||
             currentDestination == PendingApprovalDestination
+    val hideChrome = isAuthScreen || isFestivalScreen
 
     Scaffold(
         topBar = {
-            if (!isAuthScreen) {
+            if (!isAuthScreen && !isFestivalScreen) {
                 CenterAlignedTopAppBar(
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -92,7 +102,7 @@ fun AppNavigation() {
             }
         },
         bottomBar = {
-            if (!isAuthScreen) {
+            if (!hideChrome) {
                 BottomAppBar(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.primary,
@@ -127,7 +137,8 @@ fun AppNavigation() {
         NavDisplay(
             backStack = backStack,
             onBack = { backStack.removeLastOrNull() },
-            modifier = Modifier.padding(innerPadding),
+            // car FestivalDestination a deja un innerPadding
+            modifier = if (isFestivalScreen) Modifier else Modifier.padding(innerPadding),
             entryProvider = { key ->
                 when (key) {
                     LoginDestination -> NavEntry(key) {
@@ -194,7 +205,26 @@ fun AppNavigation() {
                         )
                     }
                     Destination.FESTIVAL -> NavEntry(key) {
-                        HomeScreen()
+                        FestivalHomeScreen(
+                            onNavigateToEntry = { backStack.add(FestivalEntryDestination)},
+                            onFestivalClick = { festivalId ->
+                                backStack.add(FestivalDetailsDestination(festivalId))
+                            }
+                        )
+                    }
+                    is FestivalDetailsDestination -> {
+                        val destination = key
+                        NavEntry(destination) {
+                            FestivalNavigation(
+                                festivalId = destination.id,
+                                onBack = { backStack.removeLastOrNull() }
+                            )
+                        }
+                    }
+                    FestivalEntryDestination -> NavEntry(key){
+                        FestivalEntryScreen(
+                            navigateBack = { backStack.removeLastOrNull() }
+                        )
                     }
                     Destination.EDITEURS -> NavEntry(key) { Text("Liste des editeurs") }
                     Destination.JEUX -> NavEntry(key) { Text("Liste des jeux") }
