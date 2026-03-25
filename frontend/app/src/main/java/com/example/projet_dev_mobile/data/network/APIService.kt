@@ -1,6 +1,7 @@
 package com.example.projet_dev_mobile.data.network
 
 import com.example.projet_dev_mobile.data.entity.Festival
+import com.example.projet_dev_mobile.data.network.dto.EditeurDto
 import com.example.projet_dev_mobile.data.network.dto.LoginRequest
 import com.example.projet_dev_mobile.data.network.dto.LoginResponse
 import  com.example.projet_dev_mobile.data.network.dto.FestivalDto
@@ -40,6 +41,11 @@ interface APIService {
 
     @DELETE("festivals/{id}")
     suspend fun deleteFestival(@Path("id") id: Int): Response<Unit>
+
+    // --- EDITEURS ---
+
+    @GET("editeurs")
+    suspend fun getAllEditeurs(): Response<List<EditeurDto>>
 
     // --- ZONE TARIFAIRE ---
 

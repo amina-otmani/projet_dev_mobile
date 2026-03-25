@@ -6,6 +6,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.projet_dev_mobile.FestivalApplication
 import com.example.projet_dev_mobile.ui.screens.dashboard.FestivalDetailsViewModel
+import com.example.projet_dev_mobile.ui.screens.editeurs.EditeursViewModel
 import com.example.projet_dev_mobile.ui.screens.festival.FestivalEntryViewModel
 import com.example.projet_dev_mobile.ui.screens.home.FestivalHomeViewModel
 
@@ -23,6 +24,12 @@ object AppViewModelProvider {
             FestivalEntryViewModel(
                 // Ici, tu passes les dépendances nécessaires, par exemple :
                 festivalApplication().container.festivalsRepository
+            )
+        }
+
+        initializer {
+            EditeursViewModel(
+                festivalApplication().container.editeursRepository
             )
         }
 
