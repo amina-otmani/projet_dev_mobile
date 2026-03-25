@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -44,13 +45,23 @@ fun EditeursScreen(
                     color = MaterialTheme.colorScheme.error
                 )
             }
-            else -> EditeursContent(editeurs = uiState.editeurs)
+            else -> EditeursContent(
+                allEditeurs = uiState.editeurs,
+                editeurs = uiState.filteredEditeurs,
+                searchQuery = uiState.searchQuery,
+                onSearchQueryChange = viewModel::onSearchQueryChange
+            )
         }
     }
 }
 
 @Composable
-private fun EditeursContent(editeurs: List<EditeurDto>) {
+private fun EditeursContent(
+    allEditeurs: List<EditeurDto>,
+    editeurs: List<EditeurDto>,
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit
+) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
@@ -58,10 +69,30 @@ private fun EditeursContent(editeurs: List<EditeurDto>) {
     ) {
         item {
             Text(
-                text = "Editeurs (${editeurs.size})",
+                text = "Editeurs (${allEditeurs.size})",
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(bottom = 4.dp)
             )
+        }
+
+        item {
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = onSearchQueryChange,
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                label = { Text("Rechercher un editeur") }
+            )
+        }
+
+        if (editeurs.isEmpty()) {
+            item {
+                Text(
+                    text = "Aucun editeur ne correspond a la recherche.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
 
         items(editeurs, key = { it.id }) { editeur ->
