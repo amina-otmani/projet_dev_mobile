@@ -11,11 +11,19 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -43,13 +51,29 @@ fun JeuxScreen(
                     color = MaterialTheme.colorScheme.error
                 )
             }
-            else -> JeuxContent(jeux = uiState.jeux)
+            else -> JeuxContent(
+                allJeux = uiState.jeux,
+                jeux = uiState.filteredJeux,
+                searchQuery = uiState.searchQuery,
+                selectedCategory = uiState.selectedCategory,
+                categories = uiState.availableCategories,
+                onSearchQueryChange = viewModel::onSearchQueryChange,
+                onCategoryChange = viewModel::onCategoryChange
+            )
         }
     }
 }
 
 @Composable
-private fun JeuxContent(jeux: List<JeuDto>) {
+private fun JeuxContent(
+    allJeux: List<JeuDto>,
+    jeux: List<JeuDto>,
+    searchQuery: String,
+    selectedCategory: String?,
+    categories: List<String>,
+    onSearchQueryChange: (String) -> Unit,
+    onCategoryChange: (String?) -> Unit
+) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
@@ -57,14 +81,95 @@ private fun JeuxContent(jeux: List<JeuDto>) {
     ) {
         item {
             Text(
-                text = "Jeux (${jeux.size})",
+                text = "Jeux (${allJeux.size})",
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(bottom = 4.dp)
             )
         }
 
+        item {
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = onSearchQueryChange,
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                label = { Text("Rechercher un jeu") }
+            )
+        }
+
+        item {
+            FilterDropdown(
+                label = "Categorie",
+                selectedValue = selectedCategory,
+                options = categories,
+                allLabel = "Toutes",
+                onValueSelected = onCategoryChange
+            )
+        }
+
+        if (jeux.isEmpty()) {
+            item {
+                Text(
+                    text = "Aucun jeu ne correspond aux filtres.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
         items(jeux, key = { it.id }) { jeu ->
             JeuCard(jeu = jeu)
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FilterDropdown(
+    label: String,
+    selectedValue: String?,
+    options: List<String>,
+    allLabel: String,
+    onValueSelected: (String?) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded }
+    ) {
+        OutlinedTextField(
+            value = selectedValue ?: allLabel,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(label) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth()
+        )
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text(allLabel) },
+                onClick = {
+                    onValueSelected(null)
+                    expanded = false
+                }
+            )
+
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option) },
+                    onClick = {
+                        onValueSelected(option)
+                        expanded = false
+                    }
+                )
+            }
         }
     }
 }
