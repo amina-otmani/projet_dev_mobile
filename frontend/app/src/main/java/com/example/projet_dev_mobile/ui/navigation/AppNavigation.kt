@@ -22,6 +22,7 @@ import android.util.Log
 import com.example.projet_dev_mobile.ui.screens.home.FestivalHomeScreen
 import com.example.projet_dev_mobile.ui.screens.festival.FestivalEntryScreen
 import com.example.projet_dev_mobile.ui.screens.editeurs.EditeursScreen
+import com.example.projet_dev_mobile.ui.screens.jeux.JeuxScreen
 
 
 
@@ -229,7 +230,7 @@ fun AppNavigation() {
                         )
                     }
                     Destination.EDITEURS -> NavEntry(key) { EditeursScreen() }
-                    Destination.JEUX -> NavEntry(key) { Text("Liste des jeux") }
+                    Destination.JEUX -> NavEntry(key) { JeuxScreen() }
                     Destination.ADMIN -> NavEntry(key) { Text("Pannel Admin") }
                     else -> NavEntry(Unit) { Text("Unknown route") }
                 }

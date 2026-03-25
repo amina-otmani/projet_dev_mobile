@@ -4,10 +4,12 @@
     import com.example.projet_dev_mobile.data.network.RetrofitInstance
     import com.example.projet_dev_mobile.data.repository.EditeursRepository
     import com.example.projet_dev_mobile.data.repository.FestivalsRepository
+    import com.example.projet_dev_mobile.data.repository.JeuxRepository
 
     interface AppContainer {
         val festivalsRepository: FestivalsRepository
         val editeursRepository: EditeursRepository
+        val jeuxRepository: JeuxRepository
     }
 
     class AppDataContainer(private val context: Context) : AppContainer {
@@ -23,5 +25,9 @@
 
         override val editeursRepository: EditeursRepository by lazy {
             EditeursRepository(apiService)
+        }
+
+        override val jeuxRepository: JeuxRepository by lazy {
+            JeuxRepository(apiService)
         }
     }

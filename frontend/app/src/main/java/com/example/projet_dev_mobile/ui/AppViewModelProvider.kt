@@ -9,6 +9,7 @@ import com.example.projet_dev_mobile.ui.screens.dashboard.FestivalDetailsViewMod
 import com.example.projet_dev_mobile.ui.screens.editeurs.EditeursViewModel
 import com.example.projet_dev_mobile.ui.screens.festival.FestivalEntryViewModel
 import com.example.projet_dev_mobile.ui.screens.home.FestivalHomeViewModel
+import com.example.projet_dev_mobile.ui.screens.jeux.JeuxViewModel
 
 object AppViewModelProvider {
     val Factory = viewModelFactory {
@@ -30,6 +31,12 @@ object AppViewModelProvider {
         initializer {
             EditeursViewModel(
                 festivalApplication().container.editeursRepository
+            )
+        }
+
+        initializer {
+            JeuxViewModel(
+                festivalApplication().container.jeuxRepository
             )
         }
 
