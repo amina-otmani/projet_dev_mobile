@@ -21,6 +21,11 @@ import android.widget.Toast
 import android.util.Log
 import com.example.projet_dev_mobile.ui.screens.home.FestivalHomeScreen
 import com.example.projet_dev_mobile.ui.screens.festival.FestivalEntryScreen
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.projet_dev_mobile.ui.AppViewModelProvider
+import com.example.projet_dev_mobile.ui.screens.editeurs.EditeursScreen
+import com.example.projet_dev_mobile.ui.screens.editeurs.EditeurJeuxScreen
+import com.example.projet_dev_mobile.ui.screens.jeux.JeuxScreen
 
 
 
@@ -32,6 +37,7 @@ object PendingApprovalDestination
 // festival
 object FestivalEntryDestination
 data class FestivalDetailsDestination(val id: Int)
+data class EditeurDetailsDestination(val id: Int, val nom: String)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,7 +70,10 @@ fun AppNavigation() {
     val isAuthScreen = currentDestination == LoginDestination ||
             currentDestination == RegisterDestination ||
             currentDestination == PendingApprovalDestination
-    val hideChrome = isAuthScreen || isFestivalScreen
+    val hideChrome = isAuthScreen ||
+            isFestivalScreen ||
+            currentDestination == FestivalEntryDestination ||
+            currentDestination is EditeurDetailsDestination
 
     Scaffold(
         topBar = {
@@ -226,8 +235,27 @@ fun AppNavigation() {
                             navigateBack = { backStack.removeLastOrNull() }
                         )
                     }
-                    Destination.EDITEURS -> NavEntry(key) { Text("Liste des editeurs") }
-                    Destination.JEUX -> NavEntry(key) { Text("Liste des jeux") }
+                    Destination.EDITEURS -> NavEntry(key) {
+                        EditeursScreen(
+                            onEditeurClick = { editeur ->
+                                backStack.add(EditeurDetailsDestination(editeur.id, editeur.nom))
+                            }
+                        )
+                    }
+                    is EditeurDetailsDestination -> {
+                        val destination = key
+                        NavEntry(destination) {
+                            val detailViewModel = viewModel<com.example.projet_dev_mobile.ui.screens.editeurs.EditeurJeuxViewModel>(
+                                key = "editeur_${destination.id}",
+                                factory = AppViewModelProvider.editeurJeuxFactory(
+                                    editeurId = destination.id,
+                                    editeurNom = destination.nom
+                                )
+                            )
+                            EditeurJeuxScreen(viewModel = detailViewModel)
+                        }
+                    }
+                    Destination.JEUX -> NavEntry(key) { JeuxScreen() }
                     Destination.ADMIN -> NavEntry(key) { Text("Pannel Admin") }
                     else -> NavEntry(Unit) { Text("Unknown route") }
                 }

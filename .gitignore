@@ -17,6 +17,7 @@ certs/
 # ==============================================================================
 # Gradle
 .gradle/
+build/
 */build/
 */*/build/
 gradle-app.setting

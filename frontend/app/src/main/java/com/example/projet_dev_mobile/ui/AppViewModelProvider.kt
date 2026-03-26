@@ -6,8 +6,11 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.projet_dev_mobile.FestivalApplication
 import com.example.projet_dev_mobile.ui.screens.dashboard.FestivalDetailsViewModel
+import com.example.projet_dev_mobile.ui.screens.editeurs.EditeurJeuxViewModel
+import com.example.projet_dev_mobile.ui.screens.editeurs.EditeursViewModel
 import com.example.projet_dev_mobile.ui.screens.festival.FestivalEntryViewModel
 import com.example.projet_dev_mobile.ui.screens.home.FestivalHomeViewModel
+import com.example.projet_dev_mobile.ui.screens.jeux.JeuxViewModel
 
 object AppViewModelProvider {
     val Factory = viewModelFactory {
@@ -26,6 +29,18 @@ object AppViewModelProvider {
             )
         }
 
+        initializer {
+            EditeursViewModel(
+                festivalApplication().container.editeursRepository
+            )
+        }
+
+        initializer {
+            JeuxViewModel(
+                festivalApplication().container.jeuxRepository
+            )
+        }
+
         /*
         initializer {
             FestivalDetailsViewModel(
@@ -41,6 +56,16 @@ object AppViewModelProvider {
             FestivalDetailsViewModel(
                 festivalId = festivalId,
                 festivalsRepository = festivalApplication().container.festivalsRepository
+            )
+        }
+    }
+
+    fun editeurJeuxFactory(editeurId: Int, editeurNom: String) = viewModelFactory {
+        initializer {
+            EditeurJeuxViewModel(
+                editeurId = editeurId,
+                editeurNom = editeurNom,
+                jeuxRepository = festivalApplication().container.jeuxRepository
             )
         }
     }
