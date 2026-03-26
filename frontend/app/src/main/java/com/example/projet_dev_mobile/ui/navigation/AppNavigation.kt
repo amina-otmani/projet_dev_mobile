@@ -65,7 +65,8 @@ fun AppNavigation() {
     }
 
     val currentDestination = backStack.lastOrNull()
-    val isFestivalScreen = backStack.isInFestivalContext()
+    val isFestivalScreen = backStack.isInFestivalContext() ||
+            currentDestination == FestivalEntryDestination
     val isAuthScreen = currentDestination == LoginDestination ||
             currentDestination == RegisterDestination ||
             currentDestination == PendingApprovalDestination

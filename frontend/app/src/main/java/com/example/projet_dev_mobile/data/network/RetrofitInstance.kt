@@ -1,7 +1,7 @@
 package com.example.projet_dev_mobile.data.network
 
 import android.content.Context
-import android.content.pm.ApplicationInfo
+import com.example.projet_dev_mobile.BuildConfig
 import com.example.projet_dev_mobile.data.local.TokenManager
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
@@ -9,14 +9,10 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
-import java.security.SecureRandom
-import java.security.cert.X509Certificate
-import javax.net.ssl.SSLContext
-import javax.net.ssl.TrustManager
-import javax.net.ssl.X509TrustManager
+import java.net.URL
 
 object RetrofitInstance {
-    private const val BASE_URL = "https://162.38.111.43/api/"
+    private val BASE_URL = BuildConfig.BASE_URL
 
     private val json = Json {
         ignoreUnknownKeys = true
@@ -40,31 +36,16 @@ object RetrofitInstance {
                 level = HttpLoggingInterceptor.Level.BODY
             }
 
-            val authInterceptor = AuthInterceptor(tokenManager)
+            val host = try {
+                URL(BASE_URL).host
+            } catch (e: Exception) {
+                ""
+            }
 
             val clientBuilder = OkHttpClient.Builder()
                 .addInterceptor(loggingInterceptor)
-                .addInterceptor(authInterceptor)
-        val sslContext = SSLContext.getInstance("TLS")
-
-            val isDebug = (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
-
-            if (isDebug) {
-                val trustAllCerts = arrayOf<TrustManager>(
-                    object : X509TrustManager {
-                        override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
-                        override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
-                        override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
-                    }
-                )
-
-                val sslContext = SSLContext.getInstance("TLS")
-                sslContext.init(null, trustAllCerts, SecureRandom())
-
-                clientBuilder
-                    .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
-                    .hostnameVerifier { hostname, _ -> hostname == "162.38.111.43" }
-            }
+                .addInterceptor(AuthInterceptor(tokenManager))
+                .hostnameVerifier { hostname, _ -> hostname == host }
 
             val client = clientBuilder.build()
             val contentType = "application/json".toMediaType()

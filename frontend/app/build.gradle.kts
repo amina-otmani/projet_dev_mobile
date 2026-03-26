@@ -1,3 +1,12 @@
+import java.util.Properties
+
+// Chargement du fichier .env situé à la racine du dossier frontend
+val env = Properties()
+val envFile = rootProject.file(".env")
+if (envFile.exists()) {
+    envFile.inputStream().use { env.load(it) }
+}
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -18,6 +27,15 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Injection de l'URL de l'API dans BuildConfig.BASE_URL
+        // Si la variable n'est pas trouvée dans .env, on utilise une valeur par défaut
+        val apiUrl = env.getProperty("API_URL") ?: "\"https://127.0.0.1/api/\""
+        buildConfigField("String", "BASE_URL", apiUrl)
+
+        // Extraction de l'IP pour le fichier XML (on enlève les guillemets et le https://)
+        val apiHost = apiUrl.replace("\"", "").replace("https://", "").substringBefore("/")
+        manifestPlaceholders["apiHost"] = apiHost
     }
 
     buildTypes {
@@ -35,6 +53,8 @@ android {
     }
     buildFeatures {
         compose = true
+        // Active la génération de la classe BuildConfig pour accéder à BASE_URL
+        buildConfig = true
     }
 }
 
