@@ -6,7 +6,6 @@ import com.example.projet_dev_mobile.data.network.dto.LoginRequest
 import com.example.projet_dev_mobile.data.network.dto.LoginResponse
 import com.example.projet_dev_mobile.data.network.dto.JeuDto
 import  com.example.projet_dev_mobile.data.network.dto.FestivalDto
-import com.example.projet_dev_mobile.data.network.dto.JeuDto
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -48,11 +47,6 @@ interface APIService {
 
     @GET("editeurs")
     suspend fun getAllEditeurs(): Response<List<EditeurDto>>
-
-    // --- JEUX ---
-
-    @GET("jeux")
-    suspend fun getAllJeux(): Response<List<JeuDto>>
 
     // --- ZONE TARIFAIRE ---
 
