@@ -50,6 +50,7 @@ fun EditeursScreen(
             else -> EditeursContent(
                 allEditeurs = uiState.editeurs,
                 editeurs = uiState.filteredEditeurs,
+                jeuxParEditeur = uiState.jeuxParEditeur,
                 searchQuery = uiState.searchQuery,
                 onSearchQueryChange = viewModel::onSearchQueryChange,
                 onEditeurClick = onEditeurClick
@@ -62,6 +63,7 @@ fun EditeursScreen(
 private fun EditeursContent(
     allEditeurs: List<EditeurDto>,
     editeurs: List<EditeurDto>,
+    jeuxParEditeur: Map<Int, Int>,
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
     onEditeurClick: (EditeurDto) -> Unit
@@ -100,13 +102,19 @@ private fun EditeursContent(
         }
 
         items(editeurs, key = { it.id }) { editeur ->
-            EditeurCard(editeur = editeur, onClick = { onEditeurClick(editeur) })
+            EditeurCard(
+                editeur = editeur,
+                jeuxCount = jeuxParEditeur[editeur.id] ?: 0,
+                onClick = { onEditeurClick(editeur) })
         }
     }
 }
 
 @Composable
-private fun EditeurCard(editeur: EditeurDto, onClick: () -> Unit) {
+private fun EditeurCard(
+    editeur: EditeurDto,
+    jeuxCount: Int,
+    onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -129,6 +137,14 @@ private fun EditeurCard(editeur: EditeurDto, onClick: () -> Unit) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
+            Text(
+                text = if (jeuxCount > 1) "$jeuxCount jeux" else "$jeuxCount jeu",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+
+            /*
             editeur.contacts.firstOrNull()?.let { contact ->
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Text(
@@ -142,6 +158,7 @@ private fun EditeurCard(editeur: EditeurDto, onClick: () -> Unit) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+             */
         }
     }
 }

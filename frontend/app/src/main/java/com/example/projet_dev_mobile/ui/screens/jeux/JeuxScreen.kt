@@ -35,6 +35,7 @@ import com.example.projet_dev_mobile.ui.AppViewModelProvider
 @Composable
 fun JeuxScreen(
     modifier: Modifier = Modifier,
+    onJeuClick: (Int) -> Unit,
     viewModel: JeuxViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -58,7 +59,8 @@ fun JeuxScreen(
                 selectedCategory = uiState.selectedCategory,
                 categories = uiState.availableCategories,
                 onSearchQueryChange = viewModel::onSearchQueryChange,
-                onCategoryChange = viewModel::onCategoryChange
+                onCategoryChange = viewModel::onCategoryChange,
+                onJeuClick = onJeuClick
             )
         }
     }
@@ -72,8 +74,11 @@ private fun JeuxContent(
     selectedCategory: String?,
     categories: List<String>,
     onSearchQueryChange: (String) -> Unit,
-    onCategoryChange: (String?) -> Unit
+    onCategoryChange: (String?) -> Unit,
+    onJeuClick: (Int) -> Unit
 ) {
+
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
@@ -118,7 +123,10 @@ private fun JeuxContent(
         }
 
         items(jeux, key = { it.id }) { jeu ->
-            JeuCard(jeu = jeu)
+            JeuCard(
+                jeu = jeu,
+                onClick = { onJeuClick(jeu.id) }
+            )
         }
     }
 }
@@ -175,8 +183,14 @@ private fun FilterDropdown(
 }
 
 @Composable
-private fun JeuCard(jeu: JeuDto) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+private fun JeuCard(
+    jeu: JeuDto,
+    onClick: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick
+    ) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)

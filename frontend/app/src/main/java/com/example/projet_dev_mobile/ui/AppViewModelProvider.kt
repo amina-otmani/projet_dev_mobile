@@ -11,6 +11,7 @@ import com.example.projet_dev_mobile.ui.screens.editeurs.EditeurJeuxViewModel
 import com.example.projet_dev_mobile.ui.screens.editeurs.EditeursViewModel
 import com.example.projet_dev_mobile.ui.screens.festival.FestivalEntryViewModel
 import com.example.projet_dev_mobile.ui.screens.home.FestivalHomeViewModel
+import com.example.projet_dev_mobile.ui.screens.jeux.JeuDetailsViewModel
 import com.example.projet_dev_mobile.ui.screens.jeux.JeuxViewModel
 
 object AppViewModelProvider {
@@ -32,7 +33,8 @@ object AppViewModelProvider {
 
         initializer {
             EditeursViewModel(
-                festivalApplication().container.editeursRepository
+                festivalApplication().container.editeursRepository,
+                festivalApplication().container.jeuxRepository
             )
         }
 
@@ -72,6 +74,15 @@ object AppViewModelProvider {
             EditeurJeuxViewModel(
                 editeurId = editeurId,
                 editeurNom = editeurNom,
+                jeuxRepository = festivalApplication().container.jeuxRepository
+            )
+        }
+    }
+
+    fun jeuDetailsFactory(jeuId: Int) = viewModelFactory {
+        initializer {
+            JeuDetailsViewModel(
+                jeuId = jeuId,
                 jeuxRepository = festivalApplication().container.jeuxRepository
             )
         }

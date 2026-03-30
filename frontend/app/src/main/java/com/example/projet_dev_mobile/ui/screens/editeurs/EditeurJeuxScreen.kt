@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.projet_dev_mobile.data.network.dto.JeuDto
 
 @Composable
 fun EditeurJeuxScreen(
@@ -53,7 +54,7 @@ fun EditeurJeuxScreen(
 private fun EditeurJeuxContent(
     editeurNom: String,
     jeuxCount: Int,
-    jeux: List<com.example.projet_dev_mobile.data.network.dto.JeuDto>
+    jeux: List<JeuDto>
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -70,7 +71,7 @@ private fun EditeurJeuxContent(
 
         item {
             Text(
-                text = "Jeux de l'editeur ($jeuxCount)",
+                text = "Nombre de jeux de l'editeur : $jeuxCount",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

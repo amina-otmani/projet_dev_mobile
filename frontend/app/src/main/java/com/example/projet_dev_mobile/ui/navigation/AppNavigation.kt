@@ -30,6 +30,8 @@ import com.example.projet_dev_mobile.ui.screens.admin.AdminViewModel
 import com.example.projet_dev_mobile.ui.screens.editeurs.EditeursScreen
 import com.example.projet_dev_mobile.ui.screens.editeurs.EditeurJeuxScreen
 import com.example.projet_dev_mobile.ui.screens.editeurs.EditeurJeuxViewModel
+import com.example.projet_dev_mobile.ui.screens.jeux.JeuDetailsScreen
+import com.example.projet_dev_mobile.ui.screens.jeux.JeuDetailsViewModel
 import com.example.projet_dev_mobile.ui.screens.jeux.JeuxScreen
 
 
@@ -42,6 +44,8 @@ object PendingApprovalDestination
 // festival
 object FestivalEntryDestination
 data class FestivalDetailsDestination(val id: Int)
+
+data class JeuDetailsDestination(val id: Int)
 data class EditeurDetailsDestination(val id: Int, val nom: String)
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -276,7 +280,26 @@ fun AppNavigation() {
                             EditeurJeuxScreen(viewModel = detailViewModel)
                         }
                     }
-                    Destination.JEUX -> NavEntry(key) { JeuxScreen() }
+                    Destination.JEUX -> NavEntry(key) {
+                        JeuxScreen(
+                            onJeuClick = { jeuId ->
+                                backStack.add(JeuDetailsDestination(jeuId))
+                            }
+                        )
+                    }
+                    is JeuDetailsDestination -> {
+                        val destination = key
+                        NavEntry(destination) {
+                            val detailViewModel = viewModel<JeuDetailsViewModel>(
+                                key = "jeu_${destination.id}",
+                                factory = AppViewModelProvider.jeuDetailsFactory(destination.id)
+                            )
+                            JeuDetailsScreen(
+                                viewModel = detailViewModel,
+                                onBack = { backStack.removeLastOrNull() }
+                            )
+                        }
+                    }
 
                     Destination.ADMIN -> NavEntry(key) {
                         if (currentRole.value == RoleType.ADMIN) {
