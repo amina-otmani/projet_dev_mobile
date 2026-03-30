@@ -5,6 +5,7 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.projet_dev_mobile.FestivalApplication
+import com.example.projet_dev_mobile.ui.screens.admin.AdminViewModel
 import com.example.projet_dev_mobile.ui.screens.dashboard.FestivalDetailsViewModel
 import com.example.projet_dev_mobile.ui.screens.editeurs.EditeurJeuxViewModel
 import com.example.projet_dev_mobile.ui.screens.editeurs.EditeursViewModel
@@ -38,6 +39,12 @@ object AppViewModelProvider {
         initializer {
             JeuxViewModel(
                 festivalApplication().container.jeuxRepository
+            )
+        }
+
+        initializer {
+            AdminViewModel(
+                festivalApplication().container.adminRepository
             )
         }
 

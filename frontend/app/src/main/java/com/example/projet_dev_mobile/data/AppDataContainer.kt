@@ -2,6 +2,7 @@
 
     import android.content.Context
     import com.example.projet_dev_mobile.data.network.RetrofitInstance
+    import com.example.projet_dev_mobile.data.repository.AdminRepository
     import com.example.projet_dev_mobile.data.repository.EditeursRepository
     import com.example.projet_dev_mobile.data.repository.FestivalsRepository
     import com.example.projet_dev_mobile.data.repository.JeuxRepository
@@ -10,6 +11,7 @@
         val festivalsRepository: FestivalsRepository
         val editeursRepository: EditeursRepository
         val jeuxRepository: JeuxRepository
+        val adminRepository: AdminRepository
     }
 
     class AppDataContainer(private val context: Context) : AppContainer {
@@ -29,5 +31,9 @@
 
         override val jeuxRepository: JeuxRepository by lazy {
             JeuxRepository(apiService)
+        }
+
+        override val adminRepository: AdminRepository by lazy {
+            AdminRepository(apiService)
         }
     }
