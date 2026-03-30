@@ -1,5 +1,6 @@
 package com.example.projet_dev_mobile.ui.screens.editeurs
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,7 +26,8 @@ import com.example.projet_dev_mobile.data.network.dto.JeuDto
 @Composable
 fun EditeurJeuxScreen(
     modifier: Modifier = Modifier,
-    viewModel: EditeurJeuxViewModel
+    viewModel: EditeurJeuxViewModel,
+    onJeuClick: (Int) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -44,7 +46,8 @@ fun EditeurJeuxScreen(
             else -> EditeurJeuxContent(
                 editeurNom = uiState.editeurNom,
                 jeuxCount = uiState.jeux.size,
-                jeux = uiState.jeux
+                jeux = uiState.jeux,
+                onJeuClick = onJeuClick
             )
         }
     }
@@ -54,7 +57,8 @@ fun EditeurJeuxScreen(
 private fun EditeurJeuxContent(
     editeurNom: String,
     jeuxCount: Int,
-    jeux: List<JeuDto>
+    jeux: List<JeuDto>,
+    onJeuClick: (Int) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -88,7 +92,10 @@ private fun EditeurJeuxContent(
         }
 
         items(jeux, key = { it.id }) { jeu ->
-            Card(modifier = Modifier.fillMaxWidth()) {
+            Card(modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onJeuClick(jeu.id) }
+            ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)

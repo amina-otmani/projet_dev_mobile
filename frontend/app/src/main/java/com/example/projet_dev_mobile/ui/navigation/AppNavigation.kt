@@ -277,7 +277,12 @@ fun AppNavigation() {
                                     editeurNom = destination.nom
                                 )
                             )
-                            EditeurJeuxScreen(viewModel = detailViewModel)
+                            EditeurJeuxScreen(
+                                viewModel = detailViewModel,
+                                onJeuClick = { jeuId ->
+                                    backStack.add(JeuDetailsDestination(jeuId))
+                                }
+                            )
                         }
                     }
                     Destination.JEUX -> NavEntry(key) {
