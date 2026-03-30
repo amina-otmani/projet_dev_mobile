@@ -142,23 +142,6 @@ private fun EditeurCard(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-
-
-            /*
-            editeur.contacts.firstOrNull()?.let { contact ->
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        text = "Contact principal: ${contact.prenom} ${contact.nom}",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-                Text(
-                    text = contact.email,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-             */
         }
     }
 }

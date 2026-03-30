@@ -296,7 +296,10 @@ fun AppNavigation() {
                             )
                             JeuDetailsScreen(
                                 viewModel = detailViewModel,
-                                onBack = { backStack.removeLastOrNull() }
+                                onBack = { backStack.removeLastOrNull() },
+                                onEditeurClick = { editeurId, editeurNom ->
+                                    backStack.add(EditeurDetailsDestination(editeurId, editeurNom))
+                                }
                             )
                         }
                     }
