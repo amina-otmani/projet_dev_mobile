@@ -27,19 +27,11 @@ class JeuxViewModel(
         viewModelScope.launch {
             val jeux = jeuxRepository.getAllJeux()
             if (jeux != null) {
-                val categories = jeux.map { it.typeG }.distinct().sorted()
-
                 _uiState.update {
                     it.copy(
                         jeux = jeux,
-                        filteredJeux = applyFilters(
-                            jeux = jeux,
-                            query = it.searchQuery,
-                            category = it.selectedCategory
-                        ),
-                        availableCategories = categories,
-                        isLoading = false,
-                        isError = false
+                        availableCategories = jeux.map { it.typeG }.distinct().sorted(),
+                        isLoading = false
                     )
                 }
             } else {
@@ -49,47 +41,11 @@ class JeuxViewModel(
     }
 
     fun onSearchQueryChange(query: String) {
-        _uiState.update {
-            it.copy(
-                searchQuery = query,
-                filteredJeux = applyFilters(
-                    jeux = it.jeux,
-                    query = query,
-                    category = it.selectedCategory
-                )
-            )
-        }
+        _uiState.update { it.copy(searchQuery = query) }
     }
 
     fun onCategoryChange(category: String?) {
-        _uiState.update {
-            it.copy(
-                selectedCategory = category,
-                filteredJeux = applyFilters(
-                    jeux = it.jeux,
-                    query = it.searchQuery,
-                    category = category
-                )
-            )
-        }
-    }
+        _uiState.update { it.copy(selectedCategory = category) }
 
-    private fun applyFilters(
-        jeux: List<JeuDto>,
-        query: String,
-        category: String?
-    ): List<JeuDto> {
-        val normalizedQuery = query.trim()
-
-        return jeux.filter { jeu ->
-            val matchQuery = normalizedQuery.isBlank() ||
-                jeu.nom.contains(normalizedQuery, ignoreCase = true) ||
-                jeu.nom_editeur.contains(normalizedQuery, ignoreCase = true) ||
-                jeu.typeG.contains(normalizedQuery, ignoreCase = true)
-
-            val matchCategory = category.isNullOrBlank() || jeu.typeG == category
-
-            matchQuery && matchCategory
-        }
     }
 }

@@ -34,18 +34,12 @@ class EditeursViewModel(
             val jeux = jeuxDeferred.await()
 
             if (editeurs != null) {
-                val jeuxParEditeur = jeux
-                    ?.groupingBy { it.editeur_id }
-                    ?.eachCount()
-                    ?: emptyMap()
-
                 _uiState.update {
                     it.copy(
                         editeurs = editeurs,
-                        filteredEditeurs = applyFilter(editeurs, it.searchQuery),
-                        jeuxParEditeur = jeuxParEditeur,
-                        isLoading = false,
-                        isError = false
+                        jeuxParEditeur = jeux?.groupingBy { it.editeur_id }
+                            ?.eachCount() ?: emptyMap(),
+                        isLoading = false
                     )
                 }
             } else {
@@ -55,25 +49,6 @@ class EditeursViewModel(
     }
 
     fun onSearchQueryChange(query: String) {
-        _uiState.update {
-            it.copy(
-                searchQuery = query,
-                filteredEditeurs = applyFilter(it.editeurs, query)
-            )
-        }
-    }
-
-    private fun applyFilter(editeurs: List<com.example.projet_dev_mobile.data.network.dto.EditeurDto>, query: String): List<com.example.projet_dev_mobile.data.network.dto.EditeurDto> {
-        val normalizedQuery = query.trim()
-        if (normalizedQuery.isBlank()) return editeurs
-
-        return editeurs.filter { editeur ->
-            editeur.nom.contains(normalizedQuery, ignoreCase = true) ||
-                editeur.contacts.any { contact ->
-                    contact.nom.contains(normalizedQuery, ignoreCase = true) ||
-                        contact.prenom.contains(normalizedQuery, ignoreCase = true) ||
-                        contact.email.contains(normalizedQuery, ignoreCase = true)
-                }
-        }
+        _uiState.update { it.copy(searchQuery = query) }
     }
 }

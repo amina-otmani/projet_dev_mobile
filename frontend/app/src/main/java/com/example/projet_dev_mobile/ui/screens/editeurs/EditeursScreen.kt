@@ -48,8 +48,8 @@ fun EditeursScreen(
                 )
             }
             else -> EditeursContent(
-                allEditeurs = uiState.editeurs,
                 editeurs = uiState.filteredEditeurs,
+                totalEditeurs = uiState.editeurs.size,
                 jeuxParEditeur = uiState.jeuxParEditeur,
                 searchQuery = uiState.searchQuery,
                 onSearchQueryChange = viewModel::onSearchQueryChange,
@@ -61,8 +61,8 @@ fun EditeursScreen(
 
 @Composable
 private fun EditeursContent(
-    allEditeurs: List<EditeurDto>,
     editeurs: List<EditeurDto>,
+    totalEditeurs: Int,
     jeuxParEditeur: Map<Int, Int>,
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
@@ -75,7 +75,7 @@ private fun EditeursContent(
     ) {
         item {
             Text(
-                text = "Editeurs (${allEditeurs.size})",
+                text = "Editeurs (${totalEditeurs})",
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(bottom = 4.dp)
             )
