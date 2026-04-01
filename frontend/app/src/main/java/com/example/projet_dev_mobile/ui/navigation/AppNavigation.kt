@@ -32,6 +32,7 @@ import com.example.projet_dev_mobile.ui.screens.editeurs.EditeurJeuxScreen
 import com.example.projet_dev_mobile.ui.screens.editeurs.EditeurJeuxViewModel
 import com.example.projet_dev_mobile.ui.screens.jeux.JeuDetailsScreen
 import com.example.projet_dev_mobile.ui.screens.jeux.JeuDetailsViewModel
+import com.example.projet_dev_mobile.ui.screens.jeux.JeuEntryScreen
 import com.example.projet_dev_mobile.ui.screens.jeux.JeuxScreen
 
 
@@ -46,6 +47,7 @@ object FestivalEntryDestination
 data class FestivalDetailsDestination(val id: Int)
 
 data class JeuDetailsDestination(val id: Int)
+object JeuEntryDestination
 data class EditeurDetailsDestination(val id: Int, val nom: String)
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -59,7 +61,7 @@ fun AppNavigation() {
     val api = remember { RetrofitInstance.getApiService(context) }
 
     val currentRole = remember { mutableStateOf(tokenManager.getRole()) }
-    val isLoggedIn = currentRole != null
+    val isLoggedIn = currentRole.value != null
     val isPendingApproval = isLoggedIn && currentRole.value == RoleType.NO_ROLE
 
     val backStack = remember {
@@ -289,6 +291,9 @@ fun AppNavigation() {
                         JeuxScreen(
                             onJeuClick = { jeuId ->
                                 backStack.add(JeuDetailsDestination(jeuId))
+                            },
+                            onNavigateToEntry = {
+                                backStack.add(JeuEntryDestination)
                             }
                         )
                     }
@@ -307,6 +312,11 @@ fun AppNavigation() {
                                 }
                             )
                         }
+                    }
+                    JeuEntryDestination -> NavEntry(key) {
+                        JeuEntryScreen(
+                            navigateBack = { backStack.removeLastOrNull() }
+                        )
                     }
 
                     Destination.ADMIN -> NavEntry(key) {

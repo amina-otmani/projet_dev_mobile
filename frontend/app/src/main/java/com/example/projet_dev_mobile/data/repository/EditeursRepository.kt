@@ -17,4 +17,13 @@ class EditeursRepository(private val apiService: APIService) {
             null
         }
     }
+
+    suspend fun addEditeur(editeur: EditeurDto): Boolean {
+        return try {
+            val response = apiService.addEditeur(editeur)
+            response.isSuccessful
+        } catch (_: Exception) {
+            false
+        }
+    }
 }

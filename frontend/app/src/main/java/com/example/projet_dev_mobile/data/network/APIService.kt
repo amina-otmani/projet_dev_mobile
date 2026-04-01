@@ -51,6 +51,9 @@ interface APIService {
     @GET("editeurs")
     suspend fun getAllEditeurs(): Response<List<EditeurDto>>
 
+    @POST("editeurs")
+    suspend fun addEditeur(@Body editeur: EditeurDto): Response<Unit>
+
     // --- PANNEL ADMIN ---
     @GET("users")
     suspend fun getUsers(): Response<List<UserDto>>

@@ -9,14 +9,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -37,32 +42,49 @@ import com.example.projet_dev_mobile.ui.AppViewModelProvider
 fun JeuxScreen(
     modifier: Modifier = Modifier,
     onJeuClick: (Int) -> Unit,
+    onNavigateToEntry: () -> Unit,
     viewModel: JeuxViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        when {
-            uiState.isLoading -> CircularProgressIndicator()
-            uiState.isError -> {
-                Text(
-                    text = "Erreur lors du chargement des jeux",
-                    color = MaterialTheme.colorScheme.error
+    Scaffold(
+        modifier = modifier,
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onNavigateToEntry,
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Ajouter un jeu")
+            }
+        }
+    ) { padding ->
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(padding),
+            contentAlignment = Alignment.Center
+        ) {
+            when {
+                uiState.isLoading -> CircularProgressIndicator()
+
+                uiState.isError -> {
+                    Text(
+                        text = "Erreur lors du chargement des jeux",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+
+                else -> JeuxContent(
+                    allJeux = uiState.jeux,
+                    jeux = uiState.filteredJeux,
+                    searchQuery = uiState.searchQuery,
+                    selectedCategory = uiState.selectedCategory,
+                    categories = uiState.availableCategories,
+                    onSearchQueryChange = viewModel::onSearchQueryChange,
+                    onCategoryChange = viewModel::onCategoryChange,
+                    onJeuClick = onJeuClick
                 )
             }
-            else -> JeuxContent(
-                allJeux = uiState.jeux,
-                jeux = uiState.filteredJeux,
-                searchQuery = uiState.searchQuery,
-                selectedCategory = uiState.selectedCategory,
-                categories = uiState.availableCategories,
-                onSearchQueryChange = viewModel::onSearchQueryChange,
-                onCategoryChange = viewModel::onCategoryChange,
-                onJeuClick = onJeuClick
-            )
         }
     }
 }

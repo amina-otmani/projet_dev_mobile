@@ -12,6 +12,7 @@ import com.example.projet_dev_mobile.ui.screens.editeurs.EditeursViewModel
 import com.example.projet_dev_mobile.ui.screens.festival.FestivalEntryViewModel
 import com.example.projet_dev_mobile.ui.screens.home.FestivalHomeViewModel
 import com.example.projet_dev_mobile.ui.screens.jeux.JeuDetailsViewModel
+import com.example.projet_dev_mobile.ui.screens.jeux.JeuEntryViewModel
 import com.example.projet_dev_mobile.ui.screens.jeux.JeuxViewModel
 
 object AppViewModelProvider {
@@ -26,8 +27,13 @@ object AppViewModelProvider {
 
         initializer {
             FestivalEntryViewModel(
-                // Ici, tu passes les dépendances nécessaires, par exemple :
                 festivalApplication().container.festivalsRepository
+            )
+        }
+
+        initializer {
+            JeuEntryViewModel(
+                festivalApplication().container.jeuxRepository
             )
         }
 
