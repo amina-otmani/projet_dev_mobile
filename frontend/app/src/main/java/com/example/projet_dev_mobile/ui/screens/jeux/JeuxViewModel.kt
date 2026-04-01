@@ -2,6 +2,7 @@ package com.example.projet_dev_mobile.ui.screens.jeux
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.projet_dev_mobile.data.entity.enum.GameType
 import com.example.projet_dev_mobile.data.network.dto.JeuDto
 import com.example.projet_dev_mobile.data.repository.JeuxRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,7 +45,7 @@ class JeuxViewModel(
         _uiState.update { it.copy(searchQuery = query) }
     }
 
-    fun onCategoryChange(category: String?) {
+    fun onCategoryChange(category: GameType?) {
         _uiState.update { it.copy(selectedCategory = category) }
 
     }

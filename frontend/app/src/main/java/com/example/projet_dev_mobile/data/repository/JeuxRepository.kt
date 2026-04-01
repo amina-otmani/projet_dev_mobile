@@ -17,4 +17,14 @@ class JeuxRepository(private val apiService: APIService) {
             null
         }
     }
+
+    suspend fun addJeu(jeu: JeuDto): Boolean {
+        return try {
+            val response = apiService.addJeu(jeu)
+            response.isSuccessful
+        } catch (_: Exception) {
+            false
+        }
+    }
+
 }

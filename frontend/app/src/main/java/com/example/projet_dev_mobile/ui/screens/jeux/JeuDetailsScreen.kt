@@ -101,7 +101,7 @@ fun JeuDetailsContent(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = jeu.typeG,
+                text = jeu.typeG.name,
                 style = MaterialTheme.typography.bodyLarge
             )
         }

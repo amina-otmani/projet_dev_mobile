@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.projet_dev_mobile.data.entity.enum.GameType
 import com.example.projet_dev_mobile.data.network.dto.JeuDto
 import com.example.projet_dev_mobile.ui.AppViewModelProvider
 
@@ -71,10 +72,10 @@ private fun JeuxContent(
     allJeux: List<JeuDto>,
     jeux: List<JeuDto>,
     searchQuery: String,
-    selectedCategory: String?,
-    categories: List<String>,
+    selectedCategory: GameType?,
+    categories: List<GameType>,
     onSearchQueryChange: (String) -> Unit,
-    onCategoryChange: (String?) -> Unit,
+    onCategoryChange: (GameType?) -> Unit,
     onJeuClick: (Int) -> Unit
 ) {
 
@@ -135,10 +136,10 @@ private fun JeuxContent(
 @Composable
 private fun FilterDropdown(
     label: String,
-    selectedValue: String?,
-    options: List<String>,
+    selectedValue: GameType?,
+    options: List<GameType>,
     allLabel: String,
-    onValueSelected: (String?) -> Unit
+    onValueSelected: (GameType?) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -147,7 +148,7 @@ private fun FilterDropdown(
         onExpandedChange = { expanded = !expanded }
     ) {
         OutlinedTextField(
-            value = selectedValue ?: allLabel,
+            value = selectedValue?.name ?: allLabel,
             onValueChange = {},
             readOnly = true,
             label = { Text(label) },
@@ -171,7 +172,7 @@ private fun FilterDropdown(
 
             options.forEach { option ->
                 DropdownMenuItem(
-                    text = { Text(option) },
+                    text = { Text(option.name) },
                     onClick = {
                         onValueSelected(option)
                         expanded = false

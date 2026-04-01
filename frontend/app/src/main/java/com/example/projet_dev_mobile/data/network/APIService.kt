@@ -74,6 +74,9 @@ interface APIService {
 
     @GET("editeurs/{id}/jeux")
     suspend fun getJeuxByEditeur(@Path("id") editeurId: Int): Response<List<JeuDto>>
+
+    @POST("jeux")
+    suspend fun addJeu(@Body jeu: JeuDto): Response<JeuDto>
 }
 
 @Serializable
