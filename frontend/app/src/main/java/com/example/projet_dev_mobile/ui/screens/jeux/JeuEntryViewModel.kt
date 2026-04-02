@@ -1,6 +1,7 @@
 package com.example.projet_dev_mobile.ui.screens.jeux
 
 import android.R
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -58,8 +59,13 @@ class JeuEntryViewModel(private val jeuxRepository: JeuxRepository) : ViewModel(
 
     suspend fun saveJeu(): Boolean {
         if (validateInput(jeuUiState.jeuDetails)) {
-            return jeuxRepository.addJeu(jeuUiState.jeuDetails.toJeu())
+            val jeu = jeuUiState.jeuDetails.toJeu()
+            Log.d("JeuEntryViewModel", "Tentative d'ajout : $jeu")
+            val result = jeuxRepository.addJeu(jeu)
+            Log.d("JeuEntryViewModel", "Résultat : $result")
+            return result
         }
+        Log.d("JeuEntryViewModel", "Validation échouée : ${jeuUiState.jeuDetails}")
         return false
     }
 }

@@ -27,6 +27,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.projet_dev_mobile.ui.AppViewModelProvider
 import com.example.projet_dev_mobile.ui.screens.admin.AdminScreen
 import com.example.projet_dev_mobile.ui.screens.admin.AdminViewModel
+import com.example.projet_dev_mobile.ui.screens.editeurs.EditeurEntryScreen
 import com.example.projet_dev_mobile.ui.screens.editeurs.EditeursScreen
 import com.example.projet_dev_mobile.ui.screens.editeurs.EditeurJeuxScreen
 import com.example.projet_dev_mobile.ui.screens.editeurs.EditeurJeuxViewModel
@@ -49,6 +50,7 @@ data class FestivalDetailsDestination(val id: Int)
 data class JeuDetailsDestination(val id: Int)
 object JeuEntryDestination
 data class EditeurDetailsDestination(val id: Int, val nom: String)
+object EditeurEntryDestination
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -266,6 +268,9 @@ fun AppNavigation() {
                         EditeursScreen(
                             onEditeurClick = { editeur ->
                                 backStack.add(EditeurDetailsDestination(editeur.id, editeur.nom))
+                            },
+                            onNavigateToEntry = {
+                                backStack.add(EditeurEntryDestination)
                             }
                         )
                     }
@@ -286,6 +291,11 @@ fun AppNavigation() {
                                 }
                             )
                         }
+                    }
+                    EditeurEntryDestination -> NavEntry(key) {
+                        EditeurEntryScreen(
+                            navigateBack = { backStack.removeLastOrNull() }
+                        )
                     }
                     Destination.JEUX -> NavEntry(key) {
                         JeuxScreen(

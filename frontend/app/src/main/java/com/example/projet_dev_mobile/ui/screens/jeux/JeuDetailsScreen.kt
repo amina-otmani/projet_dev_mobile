@@ -72,7 +72,7 @@ fun JeuDetailsContent(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { onEditeurClick(jeu.editeur_id, jeu.nom_editeur) },
+                .clickable { onEditeurClick(jeu.editeur_id, jeu.nom_editeur ?: "") },
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -83,7 +83,7 @@ fun JeuDetailsContent(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = jeu.nom_editeur,
+                text = jeu.nom_editeur ?: "Inconnu",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.primary
             )

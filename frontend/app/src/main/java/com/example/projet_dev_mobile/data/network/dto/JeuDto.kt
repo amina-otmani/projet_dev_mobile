@@ -13,7 +13,7 @@ data class JeuDto(
     val age_min: Int,
     val age_max: Int,
     val editeur_id: Int,
-    val nom_editeur: String,
+    val nom_editeur: String? = null,
     val auteurs: List<AuteurDto> = emptyList()
 )
 

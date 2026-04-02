@@ -11,10 +11,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -31,30 +36,43 @@ import com.example.projet_dev_mobile.ui.AppViewModelProvider
 fun EditeursScreen(
     modifier: Modifier = Modifier,
     onEditeurClick: (EditeurDto) -> Unit = {},
+    onNavigateToEntry: () -> Unit,
     viewModel: EditeursViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        when {
-            uiState.isLoading -> CircularProgressIndicator()
-            uiState.isError -> {
-                Text(
+    Scaffold(
+        modifier = modifier,
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onNavigateToEntry,
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Ajouter un éditeur")
+            }
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentAlignment = Alignment.Center
+        ) {
+            when {
+                uiState.isLoading -> CircularProgressIndicator()
+                uiState.isError -> Text(
                     text = "Erreur lors du chargement des editeurs",
                     color = MaterialTheme.colorScheme.error
                 )
+                else -> EditeursContent(
+                    editeurs = uiState.filteredEditeurs,
+                    totalEditeurs = uiState.editeurs.size,
+                    jeuxParEditeur = uiState.jeuxParEditeur,
+                    searchQuery = uiState.searchQuery,
+                    onSearchQueryChange = viewModel::onSearchQueryChange,
+                    onEditeurClick = onEditeurClick
+                )
             }
-            else -> EditeursContent(
-                editeurs = uiState.filteredEditeurs,
-                totalEditeurs = uiState.editeurs.size,
-                jeuxParEditeur = uiState.jeuxParEditeur,
-                searchQuery = uiState.searchQuery,
-                onSearchQueryChange = viewModel::onSearchQueryChange,
-                onEditeurClick = onEditeurClick
-            )
         }
     }
 }
