@@ -80,6 +80,9 @@ interface APIService {
 
     @POST("jeux")
     suspend fun addJeu(@Body jeu: JeuDto): Response<JeuDto>
+
+    @DELETE("jeux/{id}")
+    suspend fun deleteJeu(@Path("id") id: Int): Response<Unit>
 }
 
 @Serializable

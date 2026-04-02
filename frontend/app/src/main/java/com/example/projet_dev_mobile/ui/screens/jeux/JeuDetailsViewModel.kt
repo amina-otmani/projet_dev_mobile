@@ -27,4 +27,8 @@ class JeuDetailsViewModel(
                 JeuDetailsUiState(isError = true, isLoading = false)
         }
     }
+
+    suspend fun deleteJeu(): Boolean {
+        return jeuxRepository.deleteJeu(jeuId)
+    }
 }

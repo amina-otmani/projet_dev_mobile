@@ -32,4 +32,13 @@ class JeuxRepository(private val apiService: APIService) {
         }
     }
 
+    suspend fun deleteJeu(id: Int): Boolean {
+        return try {
+            val response = apiService.deleteJeu(id)
+            response.isSuccessful
+        } catch (e: Exception) {
+            false
+        }
+    }
+
 }

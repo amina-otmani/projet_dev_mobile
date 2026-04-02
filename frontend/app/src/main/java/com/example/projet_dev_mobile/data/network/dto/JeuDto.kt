@@ -14,7 +14,7 @@ data class JeuDto(
     val age_max: Int,
     val editeur_id: Int,
     val nom_editeur: String? = null,
-    val auteurs: List<AuteurDto> = emptyList()
+    val auteurs: List<AuteurDto>? = emptyList()
 )
 
 @Serializable
