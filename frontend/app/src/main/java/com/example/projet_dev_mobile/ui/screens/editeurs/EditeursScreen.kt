@@ -22,6 +22,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -39,6 +40,10 @@ fun EditeursScreen(
     onNavigateToEntry: () -> Unit,
     viewModel: EditeursViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
+    // sinon pas de refresh automatique de la page, si j'ajoute un user, je dois me deconnceter puis me reconncter pour le voir
+    LaunchedEffect(Unit) {
+        viewModel.fetchEditeurs()
+    }
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(

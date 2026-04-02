@@ -31,6 +31,7 @@ import com.example.projet_dev_mobile.ui.screens.editeurs.EditeurEntryScreen
 import com.example.projet_dev_mobile.ui.screens.editeurs.EditeursScreen
 import com.example.projet_dev_mobile.ui.screens.editeurs.EditeurJeuxScreen
 import com.example.projet_dev_mobile.ui.screens.editeurs.EditeurJeuxViewModel
+import com.example.projet_dev_mobile.ui.screens.editeurs.EditeursViewModel
 import com.example.projet_dev_mobile.ui.screens.jeux.JeuDetailsScreen
 import com.example.projet_dev_mobile.ui.screens.jeux.JeuDetailsViewModel
 import com.example.projet_dev_mobile.ui.screens.jeux.JeuEntryScreen
@@ -265,7 +266,10 @@ fun AppNavigation() {
                         )
                     }
                     Destination.EDITEURS -> NavEntry(key) {
+                        // accompagne le LaunchedEffect de EditeurScreen.
+                        val editeursViewModel: EditeursViewModel = viewModel(factory = AppViewModelProvider.Factory)
                         EditeursScreen(
+                            viewModel = editeursViewModel,
                             onEditeurClick = { editeur ->
                                 backStack.add(EditeurDetailsDestination(editeur.id, editeur.nom))
                             },

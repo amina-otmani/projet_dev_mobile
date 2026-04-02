@@ -51,8 +51,10 @@ fun EditeurEntryScreen(
             onEditeurValueChange = viewModel::updateUiState,
             onSaveClick = {
                 coroutineScope.launch {
-                    viewModel.saveEditeur()
-                    navigateBack()
+                    val success = viewModel.saveEditeur()
+                    if (success) {
+                        navigateBack()
+                    }
                 }
             },
             onAddContact = viewModel::addEmptyContact,
