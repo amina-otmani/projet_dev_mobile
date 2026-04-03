@@ -225,7 +225,7 @@ private fun JeuCard(
             )
 
             Text(
-                text = "Editeur: ${jeu.nom_editeur}",
+                text = "Editeur: ${jeu.editeur!!.nom}",
                 style = MaterialTheme.typography.bodyMedium
             )
 

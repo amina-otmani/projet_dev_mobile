@@ -8,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.projet_dev_mobile.data.entity.enum.GameType
 import com.example.projet_dev_mobile.data.network.dto.AuteurDto
+import com.example.projet_dev_mobile.data.network.dto.EditeurDto
 import com.example.projet_dev_mobile.data.network.dto.JeuDto
 import com.example.projet_dev_mobile.data.repository.JeuxRepository
 
@@ -23,7 +24,7 @@ data class JeuDetails(
     val age_min: Int = 0,
     val age_max: Int = 99,
     val editeur_id: Int = 0,
-    val nom_editeur: String = "",
+    val editeur: EditeurDto? = null,
     val auteurs: List<AuteurDto> = emptyList()
 )
 
@@ -34,7 +35,7 @@ fun JeuDetails.toJeu(): JeuDto = JeuDto(
     age_min = age_min,
     age_max = age_max,
     editeur_id = editeur_id,
-    nom_editeur = nom_editeur,
+    editeur = editeur,
     auteurs = auteurs
 )
 

@@ -83,12 +83,11 @@ object AppViewModelProvider {
         }
     }
 
-    fun editeurJeuxFactory(editeurId: Int, editeurNom: String) = viewModelFactory {
+    fun editeurJeuxFactory(editeurId: Int) = viewModelFactory {
         initializer {
             EditeurJeuxViewModel(
                 editeurId = editeurId,
-                editeurNom = editeurNom,
-                jeuxRepository = festivalApplication().container.jeuxRepository
+                editeurRepository = festivalApplication().container.editeursRepository
             )
         }
     }

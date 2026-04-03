@@ -12,8 +12,10 @@ data class JeuDto(
     val typeG: GameType,
     val age_min: Int,
     val age_max: Int,
+    // ce n'est pas une bonne pratique mais cet attribut est nécessaire pour le requête GET /jeux
     val editeur_id: Int,
-    val nom_editeur: String? = null,
+    // utile pour GET /editeurs/{id}/jeux
+    val editeur: EditeurDto? = null,
     val auteurs: List<AuteurDto>? = emptyList()
 )
 

@@ -284,8 +284,7 @@ fun AppNavigation() {
                             val detailViewModel = viewModel<EditeurJeuxViewModel>(
                                 key = "editeur_${destination.id}",
                                 factory = AppViewModelProvider.editeurJeuxFactory(
-                                    editeurId = destination.id,
-                                    editeurNom = destination.nom
+                                    editeurId = destination.id
                                 )
                             )
                             EditeurJeuxScreen(
