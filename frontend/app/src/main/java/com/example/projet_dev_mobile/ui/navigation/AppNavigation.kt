@@ -55,7 +55,7 @@ fun AppNavigation() {
     val api = remember { RetrofitInstance.getApiService(context) }
 
     val currentRole = remember { mutableStateOf(tokenManager.getRole()) }
-    val isLoggedIn = currentRole != null
+    val isLoggedIn = currentRole.value != null
     val isPendingApproval = isLoggedIn && currentRole.value == RoleType.NO_ROLE
 
     val backStack = remember {
