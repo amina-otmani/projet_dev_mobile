@@ -6,6 +6,10 @@ import com.example.projet_dev_mobile.data.network.dto.LoginRequest
 import com.example.projet_dev_mobile.data.network.dto.LoginResponse
 import com.example.projet_dev_mobile.data.network.dto.JeuDto
 import  com.example.projet_dev_mobile.data.network.dto.FestivalDto
+import com.example.projet_dev_mobile.data.network.dto.ReservationDto
+import com.example.projet_dev_mobile.data.network.dto.ReservationDetailsResponse
+import com.example.projet_dev_mobile.data.network.dto.ReservationResponse
+import com.example.projet_dev_mobile.data.network.dto.StatutRequest
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -63,4 +67,34 @@ interface APIService {
     // Récupérer les jeux d'un éditeur précis
     @GET("editeurs/{id}/jeux")
     suspend fun getJeuxByEditeur(@Path("id") editeurId: Int): Response<List<JeuDto>>
+
+    // --- RESERVATIONS ---
+
+    // Lecture Publique (Visiteurs)
+    @GET("reservations/festival/{id}/public")
+    suspend fun getPublicReservations(@Path("id") festivalId: Int): Response<List<ReservationDto>>
+
+    // Lecture Gestion (Organisateurs)
+    @GET("reservations/festival/{id}")
+    suspend fun getReservationsByFestival(@Path("id") festivalId: Int): Response<List<ReservationDto>>
+
+    // Détail complet d'une réservation
+    @GET("reservations/{id}/details")
+    suspend fun getReservationDetails(@Path("id") id: Int): Response<ReservationDetailsResponse> // À créer si besoin
+
+    // Création
+    @POST("reservations")
+    suspend fun createReservation(@Body reservation: ReservationDto): Response<ReservationResponse>
+
+    // Mise à jour complète
+    @PUT("reservations/{id}")
+    suspend fun updateReservation(@Path("id") id: Int, @Body reservation: ReservationDto): Response<Unit>
+
+    // Changement de statut
+    @PUT("reservations/{id}/statut")
+    suspend fun updateReservationStatut(@Path("id") id: Int, @Body request: StatutRequest): Response<ReservationDto>
+
+    // Suppression
+    @DELETE("reservations/{id}")
+    suspend fun deleteReservation(@Path("id") id: Int): Response<Unit>
 }

@@ -59,6 +59,7 @@ android {
 }
 
 dependencies {
+    implementation("androidx.compose.material:material-icons-extended")
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
     implementation("com.squareup.okhttp3:okhttp-urlconnection:4.11.0")
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
