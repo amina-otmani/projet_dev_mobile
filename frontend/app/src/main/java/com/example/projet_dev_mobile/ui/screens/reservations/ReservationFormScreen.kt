@@ -82,12 +82,11 @@ fun Step1Informations(
     viewModel: ReservationFormViewModel
 ) {
     val lignes by viewModel.lignes.collectAsState()
-    val zonesTarifaires by viewModel.zonesTarifaires.collectAsState()
+    val editeurs by viewModel.editeurs.collectAsState()
 
-    // Pour le menu déroulant du Type
+    var editeurExpanded by remember { mutableStateOf(false) }
     var typeExpanded by remember { mutableStateOf(false) }
 
-    // Ajout du verticalScroll pour pouvoir scroller si on ajoute beaucoup de lignes
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -96,7 +95,7 @@ fun Step1Informations(
         Text("Informations Générales", style = MaterialTheme.typography.titleLarge)
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 1. TYPE DE RÉSERVANT (Menu déroulant)
+        // 1. TYPE DE RÉSERVANT
         ExposedDropdownMenuBox(
             expanded = typeExpanded,
             onExpandedChange = { typeExpanded = !typeExpanded }
@@ -107,9 +106,7 @@ fun Step1Informations(
                 readOnly = true,
                 label = { Text("Type de réservant") },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = typeExpanded) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor()
+                modifier = Modifier.fillMaxWidth().menuAnchor()
             )
             ExposedDropdownMenu(
                 expanded = typeExpanded,
@@ -130,12 +127,47 @@ fun Step1Informations(
         Spacer(modifier = Modifier.height(8.dp))
 
         // 2. NOM DE LA STRUCTURE
-        OutlinedTextField(
-            value = state.autre_nom_reservant ?: "",
-            onValueChange = { viewModel.updateNomReservant(it) },
-            label = { Text("Nom de la structure") },
-            modifier = Modifier.fillMaxWidth()
-        )
+        if (state.type == TypeReservant.EDITEUR) {
+            // Cas Éditeur : Menu déroulant
+            val currentEditeurNom = editeurs.find { it.id == state.editeur_id }?.nom
+                ?: state.nom_reservant
+                ?: "Sélectionner un éditeur"
+
+            ExposedDropdownMenuBox(
+                expanded = editeurExpanded,
+                onExpandedChange = { editeurExpanded = !editeurExpanded }
+            ) {
+                OutlinedTextField(
+                    value = currentEditeurNom,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Éditeur") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = editeurExpanded) },
+                    modifier = Modifier.fillMaxWidth().menuAnchor()
+                )
+                ExposedDropdownMenu(
+                    expanded = editeurExpanded,
+                    onDismissRequest = { editeurExpanded = false }
+                ) {
+                    editeurs.forEach { editeur ->
+                        DropdownMenuItem(
+                            text = { Text(editeur.nom) },
+                            onClick = {
+                                viewModel.updateEditeurId(editeur.id)
+                                editeurExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+        } else {
+            OutlinedTextField(
+                value = state.autre_nom_reservant ?: "",
+                onValueChange = { viewModel.updateNomReservant(it) },
+                label = { Text("Nom de la structure (Asso / Boutique / Autre)") },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
         HorizontalDivider()
@@ -153,24 +185,14 @@ fun Step1Informations(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 Row(
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .fillMaxWidth(),
+                    modifier = Modifier.padding(8.dp).fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    // Ici on pourrait mettre un autre Dropdown pour choisir la zone parmi zonesTarifaires
-                    // Pour simplifier l'exemple, on affiche juste l'ID pour l'instant
                     Text("Zone ID: ${ligne.zone_tarifaire_id}", modifier = Modifier.weight(1f))
-
                     Text("Qté: ${ligne.quantite}", modifier = Modifier.padding(horizontal = 8.dp))
-
                     IconButton(onClick = { viewModel.removeLigneTarifaire(index) }) {
-                        Icon(
-                            Icons.Default.Delete,
-                            contentDescription = "Supprimer",
-                            tint = MaterialTheme.colorScheme.error
-                        )
+                        Icon(Icons.Default.Delete, "Supprimer", tint = MaterialTheme.colorScheme.error)
                     }
                 }
             }
@@ -182,7 +204,7 @@ fun Step1Informations(
             onClick = { viewModel.addLigneTarifaire() },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Icon(Icons.Default.Add, contentDescription = "Ajouter")
+            Icon(Icons.Default.Add, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
             Text("Ajouter un emplacement")
         }
@@ -303,10 +325,9 @@ fun LigneJeuCard(
                     modifier = Modifier.weight(1f)
                 )
                 OutlinedTextField(
-                    value = ligne.tables_occupees.toString(),
-                    onValueChange = {
-                        val newTables = it.toIntOrNull() ?: 1
-                        onUpdate(ligne.copy(tables_occupees = newTables))
+                    value = ligne.tables_occupees,
+                    onValueChange = { newValue ->
+                        onUpdate(ligne.copy(tables_occupees = newValue))
                     },
                     label = { Text("Tables/Exemplaire") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -382,8 +403,11 @@ fun LignePlacementCard(
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(text = jeuName, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
-            Text(text = "Nécessite ${ligne.nb_exemplaires * ligne.tables_occupees} table(s)", style = MaterialTheme.typography.bodySmall)
-
+            val nbTablesTotales = (ligne.nb_exemplaires * (ligne.tables_occupees.toDoubleOrNull() ?: 0.0)).toInt()
+            Text(
+                text = "Nécessite $nbTablesTotales table(s)",
+                style = MaterialTheme.typography.bodySmall
+            )
             Spacer(modifier = Modifier.height(8.dp))
 
             ExposedDropdownMenuBox(

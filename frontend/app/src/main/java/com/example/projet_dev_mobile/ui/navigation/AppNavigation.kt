@@ -41,28 +41,27 @@ data class EditeurDetailsDestination(val id: Int, val nom: String)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+
 fun AppNavigation() {
     val context = LocalContext.current
     val tokenManager = remember { TokenManager(context) }
-
     val coroutineScope = rememberCoroutineScope()
     val api = remember { RetrofitInstance.getApiService(context) }
 
-    val currentRole = remember { tokenManager.getRole() }
-    val isLoggedIn = remember { currentRole != null }
-    val isPendingApproval = remember { isLoggedIn && currentRole == RoleType.NO_ROLE }
+    val initialRole = remember { tokenManager.getRole() }
 
     val backStack = remember {
         mutableStateListOf<Any>().apply {
-            if (isPendingApproval) {
-                add(PendingApprovalDestination)
-            } else if (isLoggedIn) {
-                add(Destination.FESTIVAL)
-            } else {
-                add(LoginDestination)
-            }
+            if (initialRole == RoleType.NO_ROLE) add(PendingApprovalDestination)
+            else if (initialRole != null) add(Destination.FESTIVAL)
+            else add(LoginDestination)
         }
     }
+
+    val currentRole = remember(tokenManager.getToken()) { tokenManager.getRole() }
+
+    val isLoggedIn = currentRole != null
+    val isPendingApproval = isLoggedIn && currentRole == RoleType.NO_ROLE
 
     val currentDestination = backStack.lastOrNull()
     val isFestivalScreen = backStack.isInFestivalContext() ||
@@ -226,6 +225,7 @@ fun AppNavigation() {
                         NavEntry(destination) {
                             FestivalNavigation(
                                 festivalId = destination.id,
+                                userRole = currentRole,
                                 onBack = { backStack.removeLastOrNull() }
                             )
                         }

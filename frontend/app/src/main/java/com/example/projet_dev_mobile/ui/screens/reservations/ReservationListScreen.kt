@@ -26,6 +26,10 @@ fun ReservationsListScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    LaunchedEffect(festivalId) {
+        viewModel.loadReservations(festivalId, isOrganisateur)
+    }
+
     // État pour gérer la boîte de dialogue de confirmation
     var reservationToDelete by remember { mutableStateOf<Int?>(null) }
 

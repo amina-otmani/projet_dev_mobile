@@ -14,7 +14,7 @@ data class ReservationDto(
     val autre_nom_reservant: String? = null,
     val nom_reservant: String? = null,
     val nombre_prises: Int = 0,
-    val remise_generale: Double = 0.0,
+    val remise_generale: String = "0.00",
     val est_present: Boolean = true,
     val preferences_tables: String? = null,
     val statut: EtatReservation? = EtatReservation.PRESENT,
@@ -23,7 +23,7 @@ data class ReservationDto(
     val date_paiement: String? = null,
     val lignes: List<LigneReservationDto> = emptyList(),
     val jeux: List<JeuReserveDto> = emptyList(),
-    val total_a_payer: Double? = null
+    val total_a_payer: String? = null
 )
 
 @Serializable
@@ -31,7 +31,7 @@ data class LigneReservationDto(
     val id: Int? = null,
     val zone_tarifaire_id: Int,
     val quantite: Int,
-    val prix_moment_reservation: Double,
+    val prix_moment_reservation: String,
     val type_emplacement: String
 )
 
@@ -40,7 +40,7 @@ data class JeuReserveDto(
     val id: Int? = null,
     val jeu_id: Int,
     val nb_exemplaires: Int,
-    val tables_occupees: Int,
+    val tables_occupees: String,
     val type_table: String? = null,
     val zone_plan_id: Int? = null,
     val jeu_nom: String? = null,

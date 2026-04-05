@@ -129,7 +129,7 @@ class ReservationFormViewModel(
 
     // --- GESTION DES LIGNES TARIFAIRES (Step 1) ---
     fun addLigneTarifaire() {
-        val newLine = LigneReservationDto(zone_tarifaire_id = 0, quantite = 1, prix_moment_reservation = 0.0, type_emplacement = "TABLE")
+        val newLine = LigneReservationDto(zone_tarifaire_id = 0, quantite = 1, prix_moment_reservation = "0.00", type_emplacement = "TABLE")
         _lignes.update { it + newLine }
     }
 
@@ -149,7 +149,7 @@ class ReservationFormViewModel(
 
     // --- GESTION DES JEUX (Step 2 & 3) ---
     fun addLigneJeu() {
-        val newJeu = JeuReserveDto(jeu_id = 0, nb_exemplaires = 1, tables_occupees = 1)
+        val newJeu = JeuReserveDto(jeu_id = 0, nb_exemplaires = 1, tables_occupees = "1")
         _lignesJeux.update { it + newJeu }
     }
 
