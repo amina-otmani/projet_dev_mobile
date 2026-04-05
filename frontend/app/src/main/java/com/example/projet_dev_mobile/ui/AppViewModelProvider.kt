@@ -11,6 +11,7 @@ import com.example.projet_dev_mobile.ui.screens.editeurs.EditeursViewModel
 import com.example.projet_dev_mobile.ui.screens.festival.FestivalEntryViewModel
 import com.example.projet_dev_mobile.ui.screens.home.FestivalHomeViewModel
 import com.example.projet_dev_mobile.ui.screens.jeux.JeuxViewModel
+import com.example.projet_dev_mobile.ui.screens.workflow.WorkflowViewModel
 
 object AppViewModelProvider {
     val Factory = viewModelFactory {
@@ -66,6 +67,15 @@ object AppViewModelProvider {
                 editeurId = editeurId,
                 editeurNom = editeurNom,
                 jeuxRepository = festivalApplication().container.jeuxRepository
+            )
+        }
+    }
+
+    fun workflowFactory(festivalId: Int) = viewModelFactory {
+        initializer {
+            WorkflowViewModel(
+                festivalId = festivalId,
+                suiviRepository = festivalApplication().container.suiviRepository
             )
         }
     }
