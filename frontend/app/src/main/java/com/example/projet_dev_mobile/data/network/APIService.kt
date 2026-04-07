@@ -1,11 +1,14 @@
 package com.example.projet_dev_mobile.data.network
 
 import com.example.projet_dev_mobile.data.entity.Festival
+import com.example.projet_dev_mobile.data.entity.enum.RoleType
 import com.example.projet_dev_mobile.data.network.dto.EditeurDto
 import com.example.projet_dev_mobile.data.network.dto.LoginRequest
 import com.example.projet_dev_mobile.data.network.dto.LoginResponse
 import com.example.projet_dev_mobile.data.network.dto.JeuDto
 import  com.example.projet_dev_mobile.data.network.dto.FestivalDto
+import com.example.projet_dev_mobile.data.network.dto.UserDto
+import kotlinx.serialization.Serializable
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -48,8 +51,18 @@ interface APIService {
     @GET("editeurs")
     suspend fun getAllEditeurs(): Response<List<EditeurDto>>
 
-    // --- ZONE TARIFAIRE ---
+    // --- PANNEL ADMIN ---
+    @GET("users")
+    suspend fun getUsers(): Response<List<UserDto>>
 
+    @PUT("users/{id}/role")
+    suspend fun updateUserRole(
+        @Path("id") userId: Int,
+        @Body roleUpdate: RoleUpdateClick
+    ): Response<UserDto>
+
+    @DELETE("users/{id}")
+    suspend fun deleteUser(@Path("id") userId: Int): Response<Unit>
 
 
     // --- JEUX ---
@@ -64,3 +77,10 @@ interface APIService {
     @GET("editeurs/{id}/jeux")
     suspend fun getJeuxByEditeur(@Path("id") editeurId: Int): Response<List<JeuDto>>
 }
+
+@Serializable
+data class RoleUpdateClick(
+    val role: RoleType
+)
+
+

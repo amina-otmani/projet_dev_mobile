@@ -1,5 +1,6 @@
 package com.example.projet_dev_mobile.ui.navigation
 
+import android.os.Build
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -19,12 +20,16 @@ import com.example.projet_dev_mobile.ui.screens.register.RegisterScreen
 import kotlinx.coroutines.launch
 import android.widget.Toast
 import android.util.Log
+import androidx.annotation.RequiresApi
 import com.example.projet_dev_mobile.ui.screens.home.FestivalHomeScreen
 import com.example.projet_dev_mobile.ui.screens.festival.FestivalEntryScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.projet_dev_mobile.ui.AppViewModelProvider
+import com.example.projet_dev_mobile.ui.screens.admin.AdminScreen
+import com.example.projet_dev_mobile.ui.screens.admin.AdminViewModel
 import com.example.projet_dev_mobile.ui.screens.editeurs.EditeursScreen
 import com.example.projet_dev_mobile.ui.screens.editeurs.EditeurJeuxScreen
+import com.example.projet_dev_mobile.ui.screens.editeurs.EditeurJeuxViewModel
 import com.example.projet_dev_mobile.ui.screens.jeux.JeuxScreen
 
 
@@ -39,6 +44,7 @@ object FestivalEntryDestination
 data class FestivalDetailsDestination(val id: Int)
 data class EditeurDetailsDestination(val id: Int, val nom: String)
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavigation() {
@@ -48,9 +54,9 @@ fun AppNavigation() {
     val coroutineScope = rememberCoroutineScope()
     val api = remember { RetrofitInstance.getApiService(context) }
 
-    val currentRole = remember { tokenManager.getRole() }
-    val isLoggedIn = remember { currentRole != null }
-    val isPendingApproval = remember { isLoggedIn && currentRole == RoleType.NO_ROLE }
+    val currentRole = remember { mutableStateOf(tokenManager.getRole()) }
+    val isLoggedIn = currentRole.value != null
+    val isPendingApproval = isLoggedIn && currentRole.value == RoleType.NO_ROLE
 
     val backStack = remember {
         mutableStateListOf<Any>().apply {
@@ -120,7 +126,19 @@ fun AppNavigation() {
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                         contentColor = MaterialTheme.colorScheme.primary
                     ) {
-                        Destination.entries.forEach { destination ->
+                        Destination.entries
+
+                            .filter { destination ->
+                                if (destination == Destination.ADMIN) {
+                                    currentRole.value == RoleType.ADMIN
+                                }
+                                else {
+                                    true
+                                }
+
+                            }
+
+                            .forEach { destination ->
                             NavigationBarItem(
                                 selected = currentDestination == destination,
                                 onClick = {
@@ -154,6 +172,7 @@ fun AppNavigation() {
                         LoginScreen(
                             onLoginSuccess = {
                                 val role = tokenManager.getRole()
+                                currentRole.value = role
                                 backStack.clear()
                                 if (role == RoleType.NO_ROLE) {
                                     backStack.add(PendingApprovalDestination)
@@ -189,6 +208,7 @@ fun AppNavigation() {
 
                                             if (userRole != null && userRole != RoleType.NO_ROLE) {
                                                 tokenManager.saveRole(userRole)
+                                                currentRole.value = userRole
                                                 backStack.clear()
                                                 backStack.add(Destination.FESTIVAL)
                                             }
@@ -208,6 +228,7 @@ fun AppNavigation() {
                             },
                             onLogout = {
                                 tokenManager.clear()
+                                currentRole.value = null
                                 backStack.clear()
                                 backStack.add(LoginDestination)
                             }
@@ -245,7 +266,7 @@ fun AppNavigation() {
                     is EditeurDetailsDestination -> {
                         val destination = key
                         NavEntry(destination) {
-                            val detailViewModel = viewModel<com.example.projet_dev_mobile.ui.screens.editeurs.EditeurJeuxViewModel>(
+                            val detailViewModel = viewModel<EditeurJeuxViewModel>(
                                 key = "editeur_${destination.id}",
                                 factory = AppViewModelProvider.editeurJeuxFactory(
                                     editeurId = destination.id,
@@ -256,7 +277,18 @@ fun AppNavigation() {
                         }
                     }
                     Destination.JEUX -> NavEntry(key) { JeuxScreen() }
-                    Destination.ADMIN -> NavEntry(key) { Text("Pannel Admin") }
+
+                    Destination.ADMIN -> NavEntry(key) {
+                        if (currentRole.value == RoleType.ADMIN) {
+                            val adminViewModel: AdminViewModel = viewModel(
+                                factory = AppViewModelProvider.Factory
+                            )
+                            AdminScreen(viewModel = adminViewModel)
+                        }
+                        else {
+                            Text("Accès non autorisé")
+                        }
+                    }
                     else -> NavEntry(Unit) { Text("Unknown route") }
                 }
             }
