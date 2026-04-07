@@ -1,10 +1,5 @@
 package com.example.projet_dev_mobile.data.network
 
-import ReservationDetailsResponse
-import ReservationDto
-import ReservationResponse
-import StatutRequest
-
 import com.example.projet_dev_mobile.data.entity.enum.RoleType
 import com.example.projet_dev_mobile.data.network.dto.EditeurDto
 import com.example.projet_dev_mobile.data.network.dto.LoginRequest
@@ -12,6 +7,10 @@ import com.example.projet_dev_mobile.data.network.dto.LoginResponse
 import com.example.projet_dev_mobile.data.network.dto.JeuDto
 import  com.example.projet_dev_mobile.data.network.dto.FestivalDto
 import com.example.projet_dev_mobile.data.network.dto.PrendreContactRequest
+import com.example.projet_dev_mobile.data.network.dto.ReservationDetailsResponse
+import com.example.projet_dev_mobile.data.network.dto.ReservationDto
+import com.example.projet_dev_mobile.data.network.dto.ReservationResponse
+import com.example.projet_dev_mobile.data.network.dto.StatutRequest
 import com.example.projet_dev_mobile.data.network.dto.SuiviDto
 import com.example.projet_dev_mobile.data.network.dto.UpdateSuiviRequest
 import com.example.projet_dev_mobile.data.network.dto.UserDto
