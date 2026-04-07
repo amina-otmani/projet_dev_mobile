@@ -7,6 +7,9 @@ import com.example.projet_dev_mobile.data.network.dto.LoginRequest
 import com.example.projet_dev_mobile.data.network.dto.LoginResponse
 import com.example.projet_dev_mobile.data.network.dto.JeuDto
 import  com.example.projet_dev_mobile.data.network.dto.FestivalDto
+import com.example.projet_dev_mobile.data.network.dto.PrendreContactRequest
+import com.example.projet_dev_mobile.data.network.dto.SuiviDto
+import com.example.projet_dev_mobile.data.network.dto.UpdateSuiviRequest
 import com.example.projet_dev_mobile.data.network.dto.UserDto
 import kotlinx.serialization.Serializable
 import retrofit2.Response
@@ -76,6 +79,17 @@ interface APIService {
     // Récupérer les jeux d'un éditeur précis
     @GET("editeurs/{id}/jeux")
     suspend fun getJeuxByEditeur(@Path("id") editeurId: Int): Response<List<JeuDto>>
+
+    // --- WORKFLOW SUIVI ---
+
+    @GET("suivi/{festivalId}")
+    suspend fun getSuivisByFestival(@Path("festivalId") festivalId: Int): Response<List<SuiviDto>>
+
+    @POST("suivi/contact")
+    suspend fun prendreContact(@Body request: PrendreContactRequest): Response<Unit>
+
+    @POST("suivi")
+    suspend fun updateSuivi(@Body request: UpdateSuiviRequest): Response<Unit>
 }
 
 @Serializable

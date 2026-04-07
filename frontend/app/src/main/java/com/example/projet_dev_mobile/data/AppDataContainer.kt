@@ -6,11 +6,13 @@
     import com.example.projet_dev_mobile.data.repository.EditeursRepository
     import com.example.projet_dev_mobile.data.repository.FestivalsRepository
     import com.example.projet_dev_mobile.data.repository.JeuxRepository
+    import com.example.projet_dev_mobile.data.repository.SuiviRepository
 
     interface AppContainer {
         val festivalsRepository: FestivalsRepository
         val editeursRepository: EditeursRepository
         val jeuxRepository: JeuxRepository
+        val suiviRepository: SuiviRepository
         val adminRepository: AdminRepository
     }
 
@@ -33,6 +35,8 @@
             JeuxRepository(apiService)
         }
 
+        override val suiviRepository: SuiviRepository by lazy {
+            SuiviRepository(apiService)
         override val adminRepository: AdminRepository by lazy {
             AdminRepository(apiService)
         }

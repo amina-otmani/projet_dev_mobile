@@ -37,6 +37,8 @@ import androidx.navigation3.ui.NavDisplay
 import com.example.projet_dev_mobile.ui.AppViewModelProvider
 import com.example.projet_dev_mobile.ui.screens.dashboard.FestivalDetailsScreen
 import com.example.projet_dev_mobile.ui.screens.dashboard.FestivalDetailsViewModel
+import com.example.projet_dev_mobile.ui.screens.workflow.WorkflowScreen
+import com.example.projet_dev_mobile.ui.screens.workflow.WorkflowViewModel
 import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -207,7 +209,11 @@ fun FestivalNavigation(
                                 }
 
                                 FestivalDestination.WORKFLOW -> NavEntry(key) {
-                                    Text("Workflow du festival $festivalId")
+                                    val workflowViewModel = viewModel<WorkflowViewModel>(
+                                        key = "workflow_$festivalId",
+                                        factory = AppViewModelProvider.workflowFactory(festivalId)
+                                    )
+                                    WorkflowScreen(viewModel = workflowViewModel)
                                 }
 
                                 FestivalDestination.RESERVATIONS -> NavEntry(key) {
