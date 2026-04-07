@@ -114,7 +114,7 @@ fun JeuDetailsContent(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = jeu.editeur!!.nom,
+                text = jeu.editeur?.nom ?: jeu.nom_editeur ?: "Inconnu",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.primary
             )
