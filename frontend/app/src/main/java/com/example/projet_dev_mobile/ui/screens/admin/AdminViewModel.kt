@@ -44,7 +44,7 @@ class AdminViewModel(private val adminRepository: AdminRepository) : ViewModel()
 
     fun deleteUser(userId: Int) {
         viewModelScope.launch {
-            val success = adminRepository.ddeleteUser(userId)
+            val success = adminRepository.deleteUser(userId)
             if (success) fetchUsers()
         }
     }
