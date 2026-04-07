@@ -15,6 +15,9 @@ import com.example.projet_dev_mobile.ui.screens.home.FestivalHomeViewModel
 import com.example.projet_dev_mobile.ui.screens.jeux.JeuDetailsViewModel
 import com.example.projet_dev_mobile.ui.screens.jeux.JeuEntryViewModel
 import com.example.projet_dev_mobile.ui.screens.jeux.JeuxViewModel
+import com.example.projet_dev_mobile.ui.screens.reservations.ReservationFormViewModel
+import com.example.projet_dev_mobile.ui.screens.reservations.ReservationViewModel
+import com.example.projet_dev_mobile.ui.screens.workflow.WorkflowViewModel
 
 object AppViewModelProvider {
     val Factory = viewModelFactory {
@@ -61,26 +64,33 @@ object AppViewModelProvider {
         }
 
         initializer {
+            ReservationViewModel(
+                festivalApplication().container.reservationsRepository
+            )
+        }
+
+        initializer {
             AdminViewModel(
                 festivalApplication().container.adminRepository
             )
         }
 
-        /*
         initializer {
-            FestivalDetailsViewModel(
-                savedStateHandle = this.createSavedStateHandle(),
+            ReservationFormViewModel(
+                repository = festivalApplication().container.reservationsRepository,
+                editeursRepository = festivalApplication().container.editeursRepository,
+                jeuxRepository = festivalApplication().container.jeuxRepository,
                 festivalsRepository = festivalApplication().container.festivalsRepository
             )
         }
-
-         */
     }
+
     fun festivalDetailsFactory(festivalId: Int) = viewModelFactory {
         initializer {
             FestivalDetailsViewModel(
                 festivalId = festivalId,
-                festivalsRepository = festivalApplication().container.festivalsRepository
+                festivalsRepository = festivalApplication().container.festivalsRepository,
+                tokenManager = festivalApplication().container.tokenManager
             )
         }
     }
@@ -101,6 +111,15 @@ object AppViewModelProvider {
                 jeuId = jeuId,
                 jeuxRepository = festivalApplication().container.jeuxRepository,
                 editeurRepository = festivalApplication().container.editeursRepository
+            )
+        }
+    }
+
+    fun workflowFactory(festivalId: Int) = viewModelFactory {
+        initializer {
+            WorkflowViewModel(
+                festivalId = festivalId,
+                suiviRepository = festivalApplication().container.suiviRepository
             )
         }
     }

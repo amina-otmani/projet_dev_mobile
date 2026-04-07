@@ -36,8 +36,7 @@ import com.example.projet_dev_mobile.ui.screens.jeux.JeuDetailsScreen
 import com.example.projet_dev_mobile.ui.screens.jeux.JeuDetailsViewModel
 import com.example.projet_dev_mobile.ui.screens.jeux.JeuEntryScreen
 import com.example.projet_dev_mobile.ui.screens.jeux.JeuxScreen
-
-
+import kotlin.collections.filter
 
 
 object LoginDestination
@@ -56,6 +55,7 @@ object EditeurEntryDestination
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+
 fun AppNavigation() {
     val context = LocalContext.current
     val tokenManager = remember { TokenManager(context) }
@@ -148,23 +148,23 @@ fun AppNavigation() {
                             }
 
                             .forEach { destination ->
-                            NavigationBarItem(
-                                selected = currentDestination == destination,
-                                onClick = {
-                                    if (currentDestination != destination) {
-                                        backStack.clear()
-                                        backStack.add(destination)
-                                    }
-                                },
-                                icon = {
-                                    Icon(
-                                        imageVector = destination.icon,
-                                        contentDescription = destination.contentDescription
-                                    )
-                                },
-                                label = { Text(destination.label) }
-                            )
-                        }
+                                NavigationBarItem(
+                                    selected = currentDestination == destination,
+                                    onClick = {
+                                        if (currentDestination != destination) {
+                                            backStack.clear()
+                                            backStack.add(destination)
+                                        }
+                                    },
+                                    icon = {
+                                        Icon(
+                                            imageVector = destination.icon,
+                                            contentDescription = destination.contentDescription
+                                        )
+                                    },
+                                    label = { Text(destination.label) }
+                                )
+                            }
                     }
                 }
             }
@@ -256,6 +256,7 @@ fun AppNavigation() {
                         NavEntry(destination) {
                             FestivalNavigation(
                                 festivalId = destination.id,
+                                userRole = currentRole.value,
                                 onBack = { backStack.removeLastOrNull() }
                             )
                         }

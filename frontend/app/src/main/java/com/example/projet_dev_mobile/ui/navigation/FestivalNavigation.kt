@@ -34,99 +34,41 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.ui.NavDisplay
+import com.example.projet_dev_mobile.data.entity.enum.RoleType
 import com.example.projet_dev_mobile.ui.AppViewModelProvider
 import com.example.projet_dev_mobile.ui.screens.dashboard.FestivalDetailsScreen
 import com.example.projet_dev_mobile.ui.screens.dashboard.FestivalDetailsViewModel
+import com.example.projet_dev_mobile.ui.screens.reservations.ReservationFormScreen
+import com.example.projet_dev_mobile.ui.screens.reservations.ReservationFormViewModel
+import com.example.projet_dev_mobile.ui.screens.reservations.ReservationViewModel
+import com.example.projet_dev_mobile.ui.screens.reservations.ReservationsListScreen
+import com.example.projet_dev_mobile.ui.screens.workflow.WorkflowScreen
+import com.example.projet_dev_mobile.ui.screens.workflow.WorkflowViewModel
 import kotlinx.coroutines.launch
+
+// ---------------------------------------------------------------------------
+// Destination spécifique pour le formulaire (permet de passer l'ID en paramètre)
+// ---------------------------------------------------------------------------
+data class ReservationFormDestination(val reservationId: Int? = null)
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FestivalNavigation(
     festivalId: Int,
+    userRole: RoleType?,
     onBack: () -> Unit
 ) {
     val backStack = remember { mutableStateListOf<Any>(FestivalDestination.DASHBOARD) }
     val currentDestination = backStack.lastOrNull()
-
-    // pour le menu burger
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
 
     val viewModel: FestivalDetailsViewModel = viewModel(
-        key = "festival_$festivalId",
+        key = "festival_${festivalId}_${userRole?.name}",
         factory = AppViewModelProvider.festivalDetailsFactory(festivalId)
     )
     val uiState by viewModel.uiState.collectAsState()
-
-    /*
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text(uiState.festival?.nom ?: "Festival #$festivalId") },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        if (backStack.size > 1) backStack.removeLastOrNull()
-                        else onBack()
-                    }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Retour")
-                    }
-                }
-            )
-        },
-        bottomBar = {
-            NavigationBar {
-                FestivalDestination.entries.forEach { destination ->
-                    NavigationBarItem(
-                        selected = currentDestination == destination,
-                        onClick = {
-                            if (currentDestination != destination) {
-                                backStack.clear()
-                                backStack.add(destination)
-                            }
-                        },
-                        icon = { Icon(destination.icon, destination.contentDescription) },
-                        label = { Text(destination.label) }
-                    )
-                }
-            }
-        }
-    ) { innerPadding ->
-        NavDisplay(
-            backStack = backStack,
-            onBack = {
-                if (backStack.size > 1) backStack.removeLastOrNull()
-                else onBack()
-            },
-            modifier = Modifier.padding(innerPadding),
-            entryProvider = { key ->
-                when (key) {
-                    FestivalDestination.DASHBOARD -> NavEntry(key) {
-                        FestivalDetailsScreen(viewModel = viewModel)
-                    }
-                    FestivalDestination.EDITEURS -> NavEntry(key) {
-                        // Écran éditeurs/jeux du festival
-                        Text("Éditeurs du festival $festivalId")
-                    }
-                    FestivalDestination.JEUX -> NavEntry(key) {
-                        // Écran jeux du festival
-                        Text("Jeux du festival $festivalId")
-                    }
-                    FestivalDestination.WORKFLOW -> NavEntry(key) {
-                        // Écran workflow du festival
-                        Text("Workflow du festival $festivalId")
-                    }
-                    FestivalDestination.RESERVATIONS -> NavEntry(key) {
-                        // Écran réservations
-                        Text("Réservations du festival $festivalId")
-                    }
-                    else -> NavEntry(Unit) { Text("Inconnu") }
-                }
-            }
-        )
-    }
-
-     */
 
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         ModalNavigationDrawer(
@@ -140,23 +82,30 @@ fun FestivalNavigation(
                             modifier = Modifier.padding(16.dp)
                         )
                         HorizontalDivider()
+
                         FestivalDestination.entries.forEach { destination ->
-                            NavigationDrawerItem(
-                                icon = { Icon(destination.icon, destination.contentDescription) },
-                                label = { Text(destination.label) },
-                                selected = currentDestination == destination,
-                                onClick = {
-                                    coroutineScope.launch { drawerState.close() }
-                                    if (destination == FestivalDestination.ACCUEIL) {
-                                        onBack()
-                                    }
-                                    else if (currentDestination != destination) {
-                                        backStack.clear()
-                                        backStack.add(destination)
-                                    }
-                                },
-                                modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                            )
+                            // FIX VISIBILITÉ : Utilisation du paramètre userRole (source de vérité)
+                            val isVisible = if (destination == FestivalDestination.RESERVATIONS) {
+                                userRole == RoleType.ADMIN || userRole == RoleType.ORGANISATEUR_RESERVATIONS
+                            } else true
+
+                            if (isVisible) {
+                                NavigationDrawerItem(
+                                    icon = { Icon(destination.icon, destination.contentDescription) },
+                                    label = { Text(destination.label) },
+                                    selected = currentDestination == destination,
+                                    onClick = {
+                                        coroutineScope.launch { drawerState.close() }
+                                        if (destination == FestivalDestination.ACCUEIL) {
+                                            onBack()
+                                        } else if (currentDestination != destination) {
+                                            backStack.clear()
+                                            backStack.add(destination)
+                                        }
+                                    },
+                                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                                )
+                            }
                         }
                     }
                 }
@@ -193,6 +142,7 @@ fun FestivalNavigation(
                         },
                         modifier = Modifier.padding(innerPadding),
                         entryProvider = { key ->
+                            // DEBUT DU WHEN
                             when (key) {
                                 FestivalDestination.DASHBOARD -> NavEntry(key) {
                                     FestivalDetailsScreen(viewModel = viewModel)
@@ -207,11 +157,33 @@ fun FestivalNavigation(
                                 }
 
                                 FestivalDestination.WORKFLOW -> NavEntry(key) {
-                                    Text("Workflow du festival $festivalId")
+                                    val workflowViewModel = viewModel<WorkflowViewModel>(
+                                        key = "workflow_$festivalId",
+                                        factory = AppViewModelProvider.workflowFactory(festivalId)
+                                    )
+                                    WorkflowScreen(viewModel = workflowViewModel)
                                 }
 
                                 FestivalDestination.RESERVATIONS -> NavEntry(key) {
-                                    Text("Réservations du festival $festivalId")
+                                    val hasEditRights = userRole == RoleType.ADMIN || userRole == RoleType.ORGANISATEUR_RESERVATIONS
+                                    val reservationViewModel: ReservationViewModel = viewModel(factory = AppViewModelProvider.Factory)
+
+                                    ReservationsListScreen(
+                                        viewModel = reservationViewModel,
+                                        festivalId = festivalId,
+                                        isOrganisateur = hasEditRights,
+                                        onNavigateToForm = { resaId -> backStack.add(ReservationFormDestination(resaId)) }
+                                    )
+                                }
+
+                                is ReservationFormDestination -> NavEntry(key) {
+                                    val formViewModel: ReservationFormViewModel = viewModel(factory = AppViewModelProvider.Factory)
+                                    ReservationFormScreen(
+                                        viewModel = formViewModel,
+                                        festivalId = festivalId,
+                                        reservationIdToEdit = key.reservationId,
+                                        onNavigateBack = { backStack.removeLastOrNull() }
+                                    )
                                 }
 
                                 else -> NavEntry(Unit) { Text("Inconnu") }
@@ -221,7 +193,7 @@ fun FestivalNavigation(
                 }
             }
         }
-}
+    }
 }
 
 fun List<Any>.isInFestivalContext(): Boolean =

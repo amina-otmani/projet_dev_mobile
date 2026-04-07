@@ -1,12 +1,19 @@
 package com.example.projet_dev_mobile.data.network
 
-import com.example.projet_dev_mobile.data.entity.Festival
+import ReservationDetailsResponse
+import ReservationDto
+import ReservationResponse
+import StatutRequest
+
 import com.example.projet_dev_mobile.data.entity.enum.RoleType
 import com.example.projet_dev_mobile.data.network.dto.EditeurDto
 import com.example.projet_dev_mobile.data.network.dto.LoginRequest
 import com.example.projet_dev_mobile.data.network.dto.LoginResponse
 import com.example.projet_dev_mobile.data.network.dto.JeuDto
 import  com.example.projet_dev_mobile.data.network.dto.FestivalDto
+import com.example.projet_dev_mobile.data.network.dto.PrendreContactRequest
+import com.example.projet_dev_mobile.data.network.dto.SuiviDto
+import com.example.projet_dev_mobile.data.network.dto.UpdateSuiviRequest
 import com.example.projet_dev_mobile.data.network.dto.UserDto
 import kotlinx.serialization.Serializable
 import retrofit2.Response
@@ -62,6 +69,7 @@ interface APIService {
 
 
     // --- PANNEL ADMIN ---
+
     @GET("users")
     suspend fun getUsers(): Response<List<UserDto>>
 
@@ -74,14 +82,16 @@ interface APIService {
     @DELETE("users/{id}")
     suspend fun deleteUser(@Path("id") userId: Int): Response<Unit>
 
-
     // --- JEUX ---
+
     @GET("jeux")
     suspend fun getAllJeux(): Response<List<JeuDto>>
 
+    // Récupérer les jeux d'un festival précis
     @GET("festivals/{id}/jeux")
     suspend fun getJeuxByFestival(@Path("id") festivalId: Int): Response<List<JeuDto>>
 
+    // Récupérer les jeux d'un éditeur précis
     @GET("editeurs/{id}/jeux")
     suspend fun getJeuxByEditeur(@Path("id") editeurId: Int): Response<List<JeuDto>>
 
@@ -90,6 +100,48 @@ interface APIService {
 
     @DELETE("jeux/{id}")
     suspend fun deleteJeu(@Path("id") id: Int): Response<Unit>
+
+    // --- RESERVATIONS ---
+
+    // Lecture Publique (Visiteurs)
+    @GET("reservations/festival/{id}/public")
+    suspend fun getPublicReservations(@Path("id") festivalId: Int): Response<List<ReservationDto>>
+
+    // Lecture Gestion (Organisateurs)
+    @GET("reservations/festival/{id}")
+    suspend fun getReservationsByFestival(@Path("id") festivalId: Int): Response<List<ReservationDto>>
+
+    // Détail complet d'une réservation
+    @GET("reservations/{id}/details")
+    suspend fun getReservationDetails(@Path("id") id: Int): Response<ReservationDetailsResponse> // À créer si besoin
+
+    // Création
+    @POST("reservations")
+    suspend fun createReservation(@Body reservation: ReservationDto): Response<ReservationResponse>
+
+    // Mise à jour complète
+    @PUT("reservations/{id}")
+    suspend fun updateReservation(@Path("id") id: Int, @Body reservation: ReservationDto): Response<Unit>
+
+    // Changement de statut
+    @PUT("reservations/{id}/statut")
+    suspend fun updateReservationStatut(@Path("id") id: Int, @Body request: StatutRequest): Response<ReservationDto>
+
+    // Suppression
+    @DELETE("reservations/{id}")
+    suspend fun deleteReservation(@Path("id") id: Int): Response<Unit>
+
+    // --- WORKFLOW SUIVI ---
+
+    @GET("suivi/{festivalId}")
+    suspend fun getSuivisByFestival(@Path("festivalId") festivalId: Int): Response<List<SuiviDto>>
+
+    @POST("suivi/contact")
+    suspend fun prendreContact(@Body request: PrendreContactRequest): Response<Unit>
+
+    @POST("suivi")
+    suspend fun updateSuivi(@Body request: UpdateSuiviRequest): Response<Unit>
+
 }
 
 @Serializable

@@ -17,6 +17,7 @@ object RetrofitInstance {
     private val json = Json {
         ignoreUnknownKeys = true
         coerceInputValues = true
+        isLenient = true
     }
 
     @Volatile

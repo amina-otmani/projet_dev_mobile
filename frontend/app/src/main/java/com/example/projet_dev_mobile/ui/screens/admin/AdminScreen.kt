@@ -34,46 +34,65 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.derivedStateOf
 import com.example.projet_dev_mobile.data.entity.enum.RoleType
 import com.example.projet_dev_mobile.data.network.dto.UserDto
 
 @Composable
 fun AdminScreen(viewModel: AdminViewModel) {
-    val pendingUsers = viewModel.users.filter { it.role == RoleType.NO_ROLE }
-    val activeUsers = viewModel.users.filter { it.role != RoleType.NO_ROLE }
 
-    LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+    val pendingUsers by remember {
+        derivedStateOf { viewModel.users.filter { it.role == RoleType.NO_ROLE } }
+    }
 
-        // --- SELECTION EN ATTENTE ---
-        if (pendingUsers.isNotEmpty()) {
-            item {
-                Text("En attente de validation (${pendingUsers.size})",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color(0xFF856404))
+    val activeUsers by remember {
+        derivedStateOf { viewModel.users.filter { it.role != RoleType.NO_ROLE } }
+    }
+
+    if (viewModel.isLoading) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+    } else {
+        LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+
+            // --- SELECTION EN ATTENTE ---
+            if (pendingUsers.isNotEmpty()) {
+                item {
+                    Text(
+                        "En attente de validation (${pendingUsers.size})",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color(0xFF856404)
+                    )
+                }
+                items(pendingUsers) { user ->
+                    PendingUserRow(
+                        user,
+                        onAccept = { role -> viewModel.updateUserRole(user.id, role) },
+                        onRefuse = { viewModel.deleteUser(user.id) }
+                    )
+                }
+                item { HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp)) }
             }
-            items(pendingUsers) { user ->
-                PendingUserRow(user,
-                    onAccept = { role -> viewModel.updateUserRole(user.id, role) },
-                    onRefuse = { viewModel.deleteUser(user.id) }
+
+            // --- SECTION USERS ACTIFS
+            item {
+                Text(
+                    "Utilisateurs Actifs (${activeUsers.size})",
+                    style = MaterialTheme.typography.titleLarge
                 )
             }
-            item { HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))}
-        }
-
-        // --- SECTION USERS ACTIFS
-        item {
-            Text("Utilisateurs Actifs (${activeUsers.size})",
-                style = MaterialTheme.typography.titleLarge)
-        }
-        items(activeUsers) { user ->
-            ActiveUserRow(user,
-                onRoleChange = { newRole -> viewModel.updateUserRole(user.id, newRole) },
-                onDelete = { viewModel.deleteUser(user.id) }
-            )
+            items(activeUsers) { user ->
+                ActiveUserRow(
+                    user,
+                    onRoleChange = { newRole -> viewModel.updateUserRole(user.id, newRole) },
+                    onDelete = { viewModel.deleteUser(user.id) }
+                )
+            }
         }
     }
 }
-
 @Composable
 fun PendingUserRow(user: UserDto, onAccept: (RoleType) -> Unit, onRefuse: () -> Unit) {
     Card(
@@ -104,9 +123,13 @@ fun PendingUserRow(user: UserDto, onAccept: (RoleType) -> Unit, onRefuse: () -> 
     }
 }
 
+
+
 @Composable
 fun ActiveUserRow(user: UserDto, onRoleChange: (RoleType) -> Unit, onDelete: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
+
+    val isAdmin = user.role == RoleType.ADMIN
 
     Card(
         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
@@ -121,14 +144,17 @@ fun ActiveUserRow(user: UserDto, onRoleChange: (RoleType) -> Unit, onDelete: () 
                 Text(user.role.name, style = MaterialTheme.typography.bodySmall)
             }
 
-            // Sélecteur de rôle (comme le <select> de ta capture web)
+            // Sélecteur de rôle
             Box {
-                OutlinedButton(onClick = { expanded = true }) {
+                OutlinedButton(
+                    onClick = { expanded = true },
+                    enabled = !isAdmin
+                ) {
                     Text("Modifier")
                     Icon(Icons.Default.ArrowDropDown, contentDescription = null)
                 }
                 DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                    RoleType.entries.forEach { role ->
+                    RoleType.entries.filter { it != RoleType.NO_ROLE }.forEach { role ->
                         DropdownMenuItem(
                             text = { Text(role.name) },
                             onClick = {
@@ -140,8 +166,15 @@ fun ActiveUserRow(user: UserDto, onRoleChange: (RoleType) -> Unit, onDelete: () 
                 }
             }
 
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Supprimer", tint = MaterialTheme.colorScheme.error)
+            IconButton(
+                onClick = onDelete,
+                enabled = !isAdmin
+            ) {
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "Supprimer",
+                    tint = if (isAdmin) Color.Gray else MaterialTheme.colorScheme.error
+                )
             }
         }
     }
