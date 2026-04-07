@@ -10,7 +10,6 @@ import com.example.projet_dev_mobile.data.repository.JeuxRepository
 import com.example.projet_dev_mobile.data.repository.ReservationsRepository
 import com.example.projet_dev_mobile.data.repository.SuiviRepository
 
-
 interface AppContainer {
     val festivalsRepository: FestivalsRepository
     val editeursRepository: EditeursRepository
@@ -42,6 +41,7 @@ class AppDataContainer(private val context: Context) : AppContainer {
     override val jeuxRepository: JeuxRepository by lazy {
         JeuxRepository(apiService)
     }
+
     override val reservationsRepository: ReservationsRepository by lazy {
         ReservationsRepository(apiService)
     }

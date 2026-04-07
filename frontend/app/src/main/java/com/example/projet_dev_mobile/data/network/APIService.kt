@@ -1,6 +1,5 @@
 package com.example.projet_dev_mobile.data.network
 
-import com.example.projet_dev_mobile.data.entity.Festival
 import com.example.projet_dev_mobile.data.entity.enum.RoleType
 import com.example.projet_dev_mobile.data.network.dto.EditeurDto
 import com.example.projet_dev_mobile.data.network.dto.LoginRequest
@@ -124,12 +123,9 @@ interface APIService {
 
     @POST("suivi")
     suspend fun updateSuivi(@Body request: UpdateSuiviRequest): Response<Unit>
-
 }
 
 @Serializable
 data class RoleUpdateClick(
     val role: RoleType
 )
-
-

@@ -129,7 +129,6 @@ fun AppNavigation() {
                         contentColor = MaterialTheme.colorScheme.primary
                     ) {
                         Destination.entries
-
                             .filter { destination ->
                                 if (destination == Destination.ADMIN) {
                                     currentRole == RoleType.ADMIN
@@ -137,27 +136,25 @@ fun AppNavigation() {
                                 else {
                                     true
                                 }
-
                             }
-
                             .forEach { destination ->
-                            NavigationBarItem(
-                                selected = currentDestination == destination,
-                                onClick = {
-                                    if (currentDestination != destination) {
-                                        backStack.clear()
-                                        backStack.add(destination)
-                                    }
-                                },
-                                icon = {
-                                    Icon(
-                                        imageVector = destination.icon,
-                                        contentDescription = destination.contentDescription
-                                    )
-                                },
-                                label = { Text(destination.label) }
-                            )
-                        }
+                                NavigationBarItem(
+                                    selected = currentDestination == destination,
+                                    onClick = {
+                                        if (currentDestination != destination) {
+                                            backStack.clear()
+                                            backStack.add(destination)
+                                        }
+                                    },
+                                    icon = {
+                                        Icon(
+                                            imageVector = destination.icon,
+                                            contentDescription = destination.contentDescription
+                                        )
+                                    },
+                                    label = { Text(destination.label) }
+                                )
+                            }
                     }
                 }
             }
@@ -166,7 +163,6 @@ fun AppNavigation() {
         NavDisplay(
             backStack = backStack,
             onBack = { backStack.removeLastOrNull() },
-            // car FestivalDestination a deja un innerPadding
             modifier = if (isFestivalScreen) Modifier else Modifier.padding(innerPadding),
             entryProvider = { key ->
                 when (key) {

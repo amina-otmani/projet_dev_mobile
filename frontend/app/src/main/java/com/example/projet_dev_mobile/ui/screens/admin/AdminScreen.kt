@@ -129,6 +129,8 @@ fun PendingUserRow(user: UserDto, onAccept: (RoleType) -> Unit, onRefuse: () -> 
 fun ActiveUserRow(user: UserDto, onRoleChange: (RoleType) -> Unit, onDelete: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
 
+    val isAdmin = user.role == RoleType.ADMIN
+
     Card(
         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
@@ -142,14 +144,17 @@ fun ActiveUserRow(user: UserDto, onRoleChange: (RoleType) -> Unit, onDelete: () 
                 Text(user.role.name, style = MaterialTheme.typography.bodySmall)
             }
 
-            // Sélecteur de rôle (comme le <select> de ta capture web)
+            // Sélecteur de rôle
             Box {
-                OutlinedButton(onClick = { expanded = true }) {
+                OutlinedButton(
+                    onClick = { expanded = true },
+                    enabled = !isAdmin
+                ) {
                     Text("Modifier")
                     Icon(Icons.Default.ArrowDropDown, contentDescription = null)
                 }
                 DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                   RoleType.entries.filter { it != RoleType.NO_ROLE }.forEach { role ->
+                    RoleType.entries.filter { it != RoleType.NO_ROLE }.forEach { role ->
                         DropdownMenuItem(
                             text = { Text(role.name) },
                             onClick = {
@@ -161,8 +166,15 @@ fun ActiveUserRow(user: UserDto, onRoleChange: (RoleType) -> Unit, onDelete: () 
                 }
             }
 
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Supprimer", tint = MaterialTheme.colorScheme.error)
+            IconButton(
+                onClick = onDelete,
+                enabled = !isAdmin
+            ) {
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "Supprimer",
+                    tint = if (isAdmin) Color.Gray else MaterialTheme.colorScheme.error
+                )
             }
         }
     }
