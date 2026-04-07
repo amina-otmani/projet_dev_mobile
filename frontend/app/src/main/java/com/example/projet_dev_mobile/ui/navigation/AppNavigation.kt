@@ -291,7 +291,8 @@ fun AppNavigation() {
                                 viewModel = detailViewModel,
                                 onJeuClick = { jeuId ->
                                     backStack.add(JeuDetailsDestination(jeuId))
-                                }
+                                },
+                                onBack = { backStack.removeLastOrNull() }
                             )
                         }
                     }

@@ -1,5 +1,6 @@
 package com.example.projet_dev_mobile.ui.screens.editeurs
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.projet_dev_mobile.data.repository.EditeursRepository
@@ -13,7 +14,8 @@ import kotlinx.coroutines.launch
 
 class EditeurJeuxViewModel(
     private val editeurId: Int,
-    private val editeurRepository: EditeursRepository
+    private val editeurRepository: EditeursRepository,
+    private val jeuxRepository: JeuxRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(EditeurJeuxUiState())
@@ -46,5 +48,15 @@ class EditeurJeuxViewModel(
                 _uiState.update { it.copy(isLoading = false, isError = true) }
             }
         }
+    }
+
+    suspend fun deleteEditeur(): Boolean {
+        // 1 - supprimer tous les jeux de l'éditeur
+        val jeux = editeurRepository.getJeuxByEditeur(editeurId)
+        jeux?.forEach { jeu ->
+            jeuxRepository.deleteJeu(jeu.id)
+        }
+        // 2 - supprimer l'éditeur
+        return editeurRepository.deleteEditeur(editeurId)
     }
 }

@@ -1,5 +1,6 @@
 package com.example.projet_dev_mobile.ui.screens.editeurs
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,42 +14,79 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.projet_dev_mobile.data.network.dto.JeuDto
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.ExperimentalMaterial3Api
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditeurJeuxScreen(
     modifier: Modifier = Modifier,
     viewModel: EditeurJeuxViewModel,
-    onJeuClick: (Int) -> Unit
+    onJeuClick: (Int) -> Unit,
+    onBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
 
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        when {
-            uiState.isLoading -> CircularProgressIndicator()
-            uiState.isError -> {
-                Text(
-                    text = "Erreur lors du chargement des jeux de l'editeur",
-                    color = MaterialTheme.colorScheme.error
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {},
+                actions = {
+                    IconButton(onClick = {
+                        coroutineScope.launch {
+                            val success = viewModel.deleteEditeur()
+                            Log.d("EditeurJeuxScreen", "delete success = $success")
+                            if (success) onBack()
+                        }
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Supprimer",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        Box(
+            modifier = modifier
+                .padding(padding)
+                .fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            when {
+                uiState.isLoading -> CircularProgressIndicator()
+                uiState.isError -> {
+                    Text(
+                        text = "Erreur lors du chargement des jeux de l'editeur",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+                else -> EditeurJeuxContent(
+                    editeurNom = uiState.editeurNom,
+                    jeuxCount = uiState.jeux.size,
+                    jeux = uiState.jeux,
+                    onJeuClick = onJeuClick
                 )
             }
-            else -> EditeurJeuxContent(
-                editeurNom = uiState.editeurNom,
-                jeuxCount = uiState.jeux.size,
-                jeux = uiState.jeux,
-                onJeuClick = onJeuClick
-            )
         }
     }
 }
@@ -92,9 +130,10 @@ private fun EditeurJeuxContent(
         }
 
         items(jeux, key = { it.id }) { jeu ->
-            Card(modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onJeuClick(jeu.id) }
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onJeuClick(jeu.id) }
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),

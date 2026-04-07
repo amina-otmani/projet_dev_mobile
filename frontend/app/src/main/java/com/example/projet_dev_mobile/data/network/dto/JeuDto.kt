@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 data class JeuDto(
     val id: Int,
     val nom: String,
-    @SerialName("typeG")
+    @SerialName("typeg")
     val typeG: GameType,
     val age_min: Int,
     val age_max: Int,

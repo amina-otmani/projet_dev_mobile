@@ -88,7 +88,8 @@ object AppViewModelProvider {
         initializer {
             EditeurJeuxViewModel(
                 editeurId = editeurId,
-                editeurRepository = festivalApplication().container.editeursRepository
+                editeurRepository = festivalApplication().container.editeursRepository,
+                jeuxRepository = festivalApplication().container.jeuxRepository
             )
         }
     }

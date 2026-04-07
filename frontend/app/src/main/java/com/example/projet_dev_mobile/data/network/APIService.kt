@@ -54,7 +54,6 @@ interface APIService {
     @GET("editeurs/{id}")
     suspend fun getEditeurById(@Path("id") id: Int): Response<EditeurDto>
 
-
     @POST("editeurs")
     suspend fun addEditeur(@Body editeur: EditeurDto): Response<Unit>
 

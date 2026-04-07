@@ -55,5 +55,4 @@ class EditeursRepository(private val apiService: APIService) {
             false
         }
     }
-
 }
