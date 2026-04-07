@@ -7,10 +7,13 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.projet_dev_mobile.FestivalApplication
 import com.example.projet_dev_mobile.ui.screens.admin.AdminViewModel
 import com.example.projet_dev_mobile.ui.screens.dashboard.FestivalDetailsViewModel
+import com.example.projet_dev_mobile.ui.screens.editeurs.EditeurEntryViewModel
 import com.example.projet_dev_mobile.ui.screens.editeurs.EditeurJeuxViewModel
 import com.example.projet_dev_mobile.ui.screens.editeurs.EditeursViewModel
 import com.example.projet_dev_mobile.ui.screens.festival.FestivalEntryViewModel
 import com.example.projet_dev_mobile.ui.screens.home.FestivalHomeViewModel
+import com.example.projet_dev_mobile.ui.screens.jeux.JeuDetailsViewModel
+import com.example.projet_dev_mobile.ui.screens.jeux.JeuEntryViewModel
 import com.example.projet_dev_mobile.ui.screens.jeux.JeuxViewModel
 import com.example.projet_dev_mobile.ui.screens.reservations.ReservationFormViewModel
 import com.example.projet_dev_mobile.ui.screens.reservations.ReservationViewModel
@@ -18,20 +21,46 @@ import com.example.projet_dev_mobile.ui.screens.workflow.WorkflowViewModel
 
 object AppViewModelProvider {
     val Factory = viewModelFactory {
+        // La "recette" pour créer le FestivalHomeViewModel
         initializer {
-            FestivalHomeViewModel(festivalApplication().container.festivalsRepository)
+            FestivalHomeViewModel(
+                // On va chercher l'instance unique du repository dans l'application
+                festivalApplication().container.festivalsRepository
+            )
         }
 
         initializer {
-            FestivalEntryViewModel(festivalApplication().container.festivalsRepository)
+            FestivalEntryViewModel(
+                festivalApplication().container.festivalsRepository
+            )
         }
 
         initializer {
-            EditeursViewModel(festivalApplication().container.editeursRepository)
+            JeuEntryViewModel(
+                festivalApplication().container.jeuxRepository,
+                festivalApplication().container.editeursRepository
+            )
         }
 
         initializer {
-            JeuxViewModel(festivalApplication().container.jeuxRepository)
+            EditeurEntryViewModel(
+                festivalApplication().container.editeursRepository
+            )
+        }
+
+
+        initializer {
+            EditeursViewModel(
+                festivalApplication().container.editeursRepository,
+                festivalApplication().container.jeuxRepository
+            )
+        }
+
+        initializer {
+            JeuxViewModel(
+                festivalApplication().container.jeuxRepository,
+                festivalApplication().container.editeursRepository
+            )
         }
 
         initializer {
@@ -66,12 +95,22 @@ object AppViewModelProvider {
         }
     }
 
-    fun editeurJeuxFactory(editeurId: Int, editeurNom: String) = viewModelFactory {
+    fun editeurJeuxFactory(editeurId: Int) = viewModelFactory {
         initializer {
             EditeurJeuxViewModel(
                 editeurId = editeurId,
-                editeurNom = editeurNom,
+                editeurRepository = festivalApplication().container.editeursRepository,
                 jeuxRepository = festivalApplication().container.jeuxRepository
+            )
+        }
+    }
+
+    fun jeuDetailsFactory(jeuId: Int) = viewModelFactory {
+        initializer {
+            JeuDetailsViewModel(
+                jeuId = jeuId,
+                jeuxRepository = festivalApplication().container.jeuxRepository,
+                editeurRepository = festivalApplication().container.editeursRepository
             )
         }
     }
@@ -86,5 +125,6 @@ object AppViewModelProvider {
     }
 }
 
+// Petite fonction utilitaire pour accéder facilement au container de données
 fun CreationExtras.festivalApplication(): FestivalApplication =
     (this[AndroidViewModelFactory.APPLICATION_KEY] as FestivalApplication)

@@ -3,6 +3,7 @@ package com.example.projet_dev_mobile.data.network.dto
 import com.example.projet_dev_mobile.data.entity.enum.EtatReservation
 import com.example.projet_dev_mobile.data.entity.enum.TypeReservant
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
 
 @Serializable
 data class ReservationDto(

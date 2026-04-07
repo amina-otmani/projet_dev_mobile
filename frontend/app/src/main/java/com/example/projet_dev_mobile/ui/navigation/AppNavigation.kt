@@ -27,9 +27,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.projet_dev_mobile.ui.AppViewModelProvider
 import com.example.projet_dev_mobile.ui.screens.admin.AdminScreen
 import com.example.projet_dev_mobile.ui.screens.admin.AdminViewModel
+import com.example.projet_dev_mobile.ui.screens.editeurs.EditeurEntryScreen
 import com.example.projet_dev_mobile.ui.screens.editeurs.EditeursScreen
 import com.example.projet_dev_mobile.ui.screens.editeurs.EditeurJeuxScreen
 import com.example.projet_dev_mobile.ui.screens.editeurs.EditeurJeuxViewModel
+import com.example.projet_dev_mobile.ui.screens.editeurs.EditeursViewModel
+import com.example.projet_dev_mobile.ui.screens.jeux.JeuDetailsScreen
+import com.example.projet_dev_mobile.ui.screens.jeux.JeuDetailsViewModel
+import com.example.projet_dev_mobile.ui.screens.jeux.JeuEntryScreen
 import com.example.projet_dev_mobile.ui.screens.jeux.JeuxScreen
 import kotlin.collections.filter
 
@@ -41,7 +46,11 @@ object PendingApprovalDestination
 // festival
 object FestivalEntryDestination
 data class FestivalDetailsDestination(val id: Int)
+
+data class JeuDetailsDestination(val id: Int)
+object JeuEntryDestination
 data class EditeurDetailsDestination(val id: Int, val nom: String)
+object EditeurEntryDestination
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -50,26 +59,25 @@ data class EditeurDetailsDestination(val id: Int, val nom: String)
 fun AppNavigation() {
     val context = LocalContext.current
     val tokenManager = remember { TokenManager(context) }
+
     val coroutineScope = rememberCoroutineScope()
     val api = remember { RetrofitInstance.getApiService(context) }
 
-    var currentRole by remember { mutableStateOf(tokenManager.getRole()) }
+    val currentRole = remember { mutableStateOf(tokenManager.getRole()) }
+    val isLoggedIn = currentRole.value != null
+    val isPendingApproval = isLoggedIn && currentRole.value == RoleType.NO_ROLE
 
     val backStack = remember {
         mutableStateListOf<Any>().apply {
-            val role = tokenManager.getRole()
-            if (role == RoleType.NO_ROLE) {
+            if (isPendingApproval) {
                 add(PendingApprovalDestination)
-            } else if (role != null) {
+            } else if (isLoggedIn) {
                 add(Destination.FESTIVAL)
             } else {
                 add(LoginDestination)
             }
         }
     }
-
-    val isLoggedIn = currentRole != null
-    val isPendingApproval = isLoggedIn && currentRole == RoleType.NO_ROLE
 
     val currentDestination = backStack.lastOrNull()
     val isFestivalScreen = backStack.isInFestivalContext() ||
@@ -104,10 +112,9 @@ fun AppNavigation() {
                     actions = {
                         IconButton(onClick = {
                             tokenManager.clear()
-                            currentRole = null
                             backStack.clear()
                             backStack.add(LoginDestination)
-                        }){
+                        }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ExitToApp,
                                 contentDescription = "Se déconnecter",
@@ -129,14 +136,17 @@ fun AppNavigation() {
                         contentColor = MaterialTheme.colorScheme.primary
                     ) {
                         Destination.entries
+
                             .filter { destination ->
                                 if (destination == Destination.ADMIN) {
-                                    currentRole == RoleType.ADMIN
+                                    currentRole.value == RoleType.ADMIN
                                 }
                                 else {
                                     true
                                 }
+
                             }
+
                             .forEach { destination ->
                                 NavigationBarItem(
                                     selected = currentDestination == destination,
@@ -163,6 +173,7 @@ fun AppNavigation() {
         NavDisplay(
             backStack = backStack,
             onBack = { backStack.removeLastOrNull() },
+            // car FestivalDestination a deja un innerPadding
             modifier = if (isFestivalScreen) Modifier else Modifier.padding(innerPadding),
             entryProvider = { key ->
                 when (key) {
@@ -170,7 +181,7 @@ fun AppNavigation() {
                         LoginScreen(
                             onLoginSuccess = {
                                 val role = tokenManager.getRole()
-                                currentRole = role
+                                currentRole.value = role
                                 backStack.clear()
                                 if (role == RoleType.NO_ROLE) {
                                     backStack.add(PendingApprovalDestination)
@@ -206,7 +217,7 @@ fun AppNavigation() {
 
                                             if (userRole != null && userRole != RoleType.NO_ROLE) {
                                                 tokenManager.saveRole(userRole)
-                                                currentRole = userRole
+                                                currentRole.value = userRole
                                                 backStack.clear()
                                                 backStack.add(Destination.FESTIVAL)
                                             }
@@ -226,7 +237,7 @@ fun AppNavigation() {
                             },
                             onLogout = {
                                 tokenManager.clear()
-                                currentRole = null
+                                currentRole.value = null
                                 backStack.clear()
                                 backStack.add(LoginDestination)
                             }
@@ -245,7 +256,7 @@ fun AppNavigation() {
                         NavEntry(destination) {
                             FestivalNavigation(
                                 festivalId = destination.id,
-                                userRole = currentRole,
+                                userRole = currentRole.value,
                                 onBack = { backStack.removeLastOrNull() }
                             )
                         }
@@ -256,9 +267,15 @@ fun AppNavigation() {
                         )
                     }
                     Destination.EDITEURS -> NavEntry(key) {
+                        // accompagne le LaunchedEffect de EditeurScreen.
+                        val editeursViewModel: EditeursViewModel = viewModel(factory = AppViewModelProvider.Factory)
                         EditeursScreen(
+                            viewModel = editeursViewModel,
                             onEditeurClick = { editeur ->
                                 backStack.add(EditeurDetailsDestination(editeur.id, editeur.nom))
+                            },
+                            onNavigateToEntry = {
+                                backStack.add(EditeurEntryDestination)
                             }
                         )
                     }
@@ -268,17 +285,57 @@ fun AppNavigation() {
                             val detailViewModel = viewModel<EditeurJeuxViewModel>(
                                 key = "editeur_${destination.id}",
                                 factory = AppViewModelProvider.editeurJeuxFactory(
-                                    editeurId = destination.id,
-                                    editeurNom = destination.nom
+                                    editeurId = destination.id
                                 )
                             )
-                            EditeurJeuxScreen(viewModel = detailViewModel)
+                            EditeurJeuxScreen(
+                                viewModel = detailViewModel,
+                                onJeuClick = { jeuId ->
+                                    backStack.add(JeuDetailsDestination(jeuId))
+                                },
+                                onBack = { backStack.removeLastOrNull() }
+                            )
                         }
                     }
-                    Destination.JEUX -> NavEntry(key) { JeuxScreen() }
+                    EditeurEntryDestination -> NavEntry(key) {
+                        EditeurEntryScreen(
+                            navigateBack = { backStack.removeLastOrNull() }
+                        )
+                    }
+                    Destination.JEUX -> NavEntry(key) {
+                        JeuxScreen(
+                            onJeuClick = { jeuId ->
+                                backStack.add(JeuDetailsDestination(jeuId))
+                            },
+                            onNavigateToEntry = {
+                                backStack.add(JeuEntryDestination)
+                            }
+                        )
+                    }
+                    is JeuDetailsDestination -> {
+                        val destination = key
+                        NavEntry(destination) {
+                            val detailViewModel = viewModel<JeuDetailsViewModel>(
+                                key = "jeu_${destination.id}",
+                                factory = AppViewModelProvider.jeuDetailsFactory(destination.id)
+                            )
+                            JeuDetailsScreen(
+                                viewModel = detailViewModel,
+                                onBack = { backStack.removeLastOrNull() },
+                                onEditeurClick = { editeurId, editeurNom ->
+                                    backStack.add(EditeurDetailsDestination(editeurId, editeurNom))
+                                }
+                            )
+                        }
+                    }
+                    JeuEntryDestination -> NavEntry(key) {
+                        JeuEntryScreen(
+                            navigateBack = { backStack.removeLastOrNull() }
+                        )
+                    }
 
                     Destination.ADMIN -> NavEntry(key) {
-                        if (currentRole == RoleType.ADMIN) {
+                        if (currentRole.value == RoleType.ADMIN) {
                             val adminViewModel: AdminViewModel = viewModel(
                                 factory = AppViewModelProvider.Factory
                             )

@@ -1,15 +1,16 @@
 package com.example.projet_dev_mobile.data.network
 
+import ReservationDetailsResponse
+import ReservationDto
+import ReservationResponse
+import StatutRequest
+
 import com.example.projet_dev_mobile.data.entity.enum.RoleType
 import com.example.projet_dev_mobile.data.network.dto.EditeurDto
 import com.example.projet_dev_mobile.data.network.dto.LoginRequest
 import com.example.projet_dev_mobile.data.network.dto.LoginResponse
 import com.example.projet_dev_mobile.data.network.dto.JeuDto
 import  com.example.projet_dev_mobile.data.network.dto.FestivalDto
-import com.example.projet_dev_mobile.data.network.dto.ReservationDto
-import com.example.projet_dev_mobile.data.network.dto.ReservationDetailsResponse
-import com.example.projet_dev_mobile.data.network.dto.ReservationResponse
-import com.example.projet_dev_mobile.data.network.dto.StatutRequest
 import com.example.projet_dev_mobile.data.network.dto.PrendreContactRequest
 import com.example.projet_dev_mobile.data.network.dto.SuiviDto
 import com.example.projet_dev_mobile.data.network.dto.UpdateSuiviRequest
@@ -57,7 +58,18 @@ interface APIService {
     @GET("editeurs")
     suspend fun getAllEditeurs(): Response<List<EditeurDto>>
 
+    @GET("editeurs/{id}")
+    suspend fun getEditeurById(@Path("id") id: Int): Response<EditeurDto>
+
+    @POST("editeurs")
+    suspend fun addEditeur(@Body editeur: EditeurDto): Response<Unit>
+
+    @DELETE("editeurs/{id}")
+    suspend fun deleteEditeur(@Path("id") id: Int): Response<Unit>
+
+
     // --- PANNEL ADMIN ---
+
     @GET("users")
     suspend fun getUsers(): Response<List<UserDto>>
 
@@ -70,8 +82,8 @@ interface APIService {
     @DELETE("users/{id}")
     suspend fun deleteUser(@Path("id") userId: Int): Response<Unit>
 
-
     // --- JEUX ---
+
     @GET("jeux")
     suspend fun getAllJeux(): Response<List<JeuDto>>
 
@@ -82,6 +94,12 @@ interface APIService {
     // Récupérer les jeux d'un éditeur précis
     @GET("editeurs/{id}/jeux")
     suspend fun getJeuxByEditeur(@Path("id") editeurId: Int): Response<List<JeuDto>>
+
+    @POST("jeux")
+    suspend fun addJeu(@Body jeu: JeuDto): Response<JeuDto>
+
+    @DELETE("jeux/{id}")
+    suspend fun deleteJeu(@Path("id") id: Int): Response<Unit>
 
     // --- RESERVATIONS ---
 
@@ -123,9 +141,12 @@ interface APIService {
 
     @POST("suivi")
     suspend fun updateSuivi(@Body request: UpdateSuiviRequest): Response<Unit>
+
 }
 
 @Serializable
 data class RoleUpdateClick(
     val role: RoleType
 )
+
+

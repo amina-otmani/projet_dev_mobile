@@ -9,14 +9,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -29,37 +34,57 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.projet_dev_mobile.data.entity.enum.GameType
 import com.example.projet_dev_mobile.data.network.dto.JeuDto
 import com.example.projet_dev_mobile.ui.AppViewModelProvider
 
 @Composable
 fun JeuxScreen(
     modifier: Modifier = Modifier,
+    onJeuClick: (Int) -> Unit,
+    onNavigateToEntry: () -> Unit,
     viewModel: JeuxViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        when {
-            uiState.isLoading -> CircularProgressIndicator()
-            uiState.isError -> {
-                Text(
-                    text = "Erreur lors du chargement des jeux",
-                    color = MaterialTheme.colorScheme.error
+    Scaffold(
+        modifier = modifier,
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onNavigateToEntry,
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Ajouter un jeu")
+            }
+        }
+    ) { padding ->
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(padding),
+            contentAlignment = Alignment.Center
+        ) {
+            when {
+                uiState.isLoading -> CircularProgressIndicator()
+
+                uiState.isError -> {
+                    Text(
+                        text = "Erreur lors du chargement des jeux",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+
+                else -> JeuxContent(
+                    allJeux = uiState.jeux,
+                    jeux = uiState.filteredJeux,
+                    searchQuery = uiState.searchQuery,
+                    selectedCategory = uiState.selectedCategory,
+                    categories = uiState.availableCategories,
+                    onSearchQueryChange = viewModel::onSearchQueryChange,
+                    onCategoryChange = viewModel::onCategoryChange,
+                    onJeuClick = onJeuClick
                 )
             }
-            else -> JeuxContent(
-                allJeux = uiState.jeux,
-                jeux = uiState.filteredJeux,
-                searchQuery = uiState.searchQuery,
-                selectedCategory = uiState.selectedCategory,
-                categories = uiState.availableCategories,
-                onSearchQueryChange = viewModel::onSearchQueryChange,
-                onCategoryChange = viewModel::onCategoryChange
-            )
         }
     }
 }
@@ -69,11 +94,14 @@ private fun JeuxContent(
     allJeux: List<JeuDto>,
     jeux: List<JeuDto>,
     searchQuery: String,
-    selectedCategory: String?,
-    categories: List<String>,
+    selectedCategory: GameType?,
+    categories: List<GameType>,
     onSearchQueryChange: (String) -> Unit,
-    onCategoryChange: (String?) -> Unit
+    onCategoryChange: (GameType?) -> Unit,
+    onJeuClick: (Int) -> Unit
 ) {
+
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
@@ -118,7 +146,10 @@ private fun JeuxContent(
         }
 
         items(jeux, key = { it.id }) { jeu ->
-            JeuCard(jeu = jeu)
+            JeuCard(
+                jeu = jeu,
+                onClick = { onJeuClick(jeu.id) }
+            )
         }
     }
 }
@@ -127,10 +158,10 @@ private fun JeuxContent(
 @Composable
 private fun FilterDropdown(
     label: String,
-    selectedValue: String?,
-    options: List<String>,
+    selectedValue: GameType?,
+    options: List<GameType>,
     allLabel: String,
-    onValueSelected: (String?) -> Unit
+    onValueSelected: (GameType?) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -139,7 +170,7 @@ private fun FilterDropdown(
         onExpandedChange = { expanded = !expanded }
     ) {
         OutlinedTextField(
-            value = selectedValue ?: allLabel,
+            value = selectedValue?.name ?: allLabel,
             onValueChange = {},
             readOnly = true,
             label = { Text(label) },
@@ -163,7 +194,7 @@ private fun FilterDropdown(
 
             options.forEach { option ->
                 DropdownMenuItem(
-                    text = { Text(option) },
+                    text = { Text(option.name) },
                     onClick = {
                         onValueSelected(option)
                         expanded = false
@@ -175,8 +206,14 @@ private fun FilterDropdown(
 }
 
 @Composable
-private fun JeuCard(jeu: JeuDto) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+private fun JeuCard(
+    jeu: JeuDto,
+    onClick: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick
+    ) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -188,7 +225,7 @@ private fun JeuCard(jeu: JeuDto) {
             )
 
             Text(
-                text = "Editeur: ${jeu.nom_editeur}",
+                text = "Editeur: ${jeu.editeur?.nom ?: "Inconnu"}",
                 style = MaterialTheme.typography.bodyMedium
             )
 

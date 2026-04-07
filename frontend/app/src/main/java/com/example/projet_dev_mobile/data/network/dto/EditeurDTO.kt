@@ -7,7 +7,7 @@ data class EditeurDto(
     val id: Int,
     val nom: String,
     val created_at: String? = null,
-    val contacts: List<EditeurContactDto> = emptyList()
+    val contacts: List<EditeurContactDto> = emptyList(),
 )
 
 @Serializable

@@ -11,12 +11,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -31,37 +37,56 @@ import com.example.projet_dev_mobile.ui.AppViewModelProvider
 fun EditeursScreen(
     modifier: Modifier = Modifier,
     onEditeurClick: (EditeurDto) -> Unit = {},
+    onNavigateToEntry: () -> Unit,
     viewModel: EditeursViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
+    // sinon pas de refresh automatique de la page, si j'ajoute un user, je dois me deconnceter puis me reconncter pour le voir
+    LaunchedEffect(Unit) {
+        viewModel.fetchEditeurs()
+    }
     val uiState by viewModel.uiState.collectAsState()
 
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        when {
-            uiState.isLoading -> CircularProgressIndicator()
-            uiState.isError -> {
-                Text(
+    Scaffold(
+        modifier = modifier,
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onNavigateToEntry,
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Ajouter un éditeur")
+            }
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentAlignment = Alignment.Center
+        ) {
+            when {
+                uiState.isLoading -> CircularProgressIndicator()
+                uiState.isError -> Text(
                     text = "Erreur lors du chargement des editeurs",
                     color = MaterialTheme.colorScheme.error
                 )
+                else -> EditeursContent(
+                    editeurs = uiState.filteredEditeurs,
+                    totalEditeurs = uiState.editeurs.size,
+                    jeuxParEditeur = uiState.jeuxParEditeur,
+                    searchQuery = uiState.searchQuery,
+                    onSearchQueryChange = viewModel::onSearchQueryChange,
+                    onEditeurClick = onEditeurClick
+                )
             }
-            else -> EditeursContent(
-                allEditeurs = uiState.editeurs,
-                editeurs = uiState.filteredEditeurs,
-                searchQuery = uiState.searchQuery,
-                onSearchQueryChange = viewModel::onSearchQueryChange,
-                onEditeurClick = onEditeurClick
-            )
         }
     }
 }
 
 @Composable
 private fun EditeursContent(
-    allEditeurs: List<EditeurDto>,
     editeurs: List<EditeurDto>,
+    totalEditeurs: Int,
+    jeuxParEditeur: Map<Int, Int>,
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
     onEditeurClick: (EditeurDto) -> Unit
@@ -73,7 +98,7 @@ private fun EditeursContent(
     ) {
         item {
             Text(
-                text = "Editeurs (${allEditeurs.size})",
+                text = "Editeurs (${totalEditeurs})",
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(bottom = 4.dp)
             )
@@ -100,13 +125,19 @@ private fun EditeursContent(
         }
 
         items(editeurs, key = { it.id }) { editeur ->
-            EditeurCard(editeur = editeur, onClick = { onEditeurClick(editeur) })
+            EditeurCard(
+                editeur = editeur,
+                jeuxCount = jeuxParEditeur[editeur.id] ?: 0,
+                onClick = { onEditeurClick(editeur) })
         }
     }
 }
 
 @Composable
-private fun EditeurCard(editeur: EditeurDto, onClick: () -> Unit) {
+private fun EditeurCard(
+    editeur: EditeurDto,
+    jeuxCount: Int,
+    onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -129,19 +160,11 @@ private fun EditeurCard(editeur: EditeurDto, onClick: () -> Unit) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            editeur.contacts.firstOrNull()?.let { contact ->
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        text = "Contact principal: ${contact.prenom} ${contact.nom}",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-                Text(
-                    text = contact.email,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            Text(
+                text = if (jeuxCount > 1) "$jeuxCount jeux" else "$jeuxCount jeu",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
