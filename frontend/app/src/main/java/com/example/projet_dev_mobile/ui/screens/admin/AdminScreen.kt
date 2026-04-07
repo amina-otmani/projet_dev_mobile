@@ -34,57 +34,65 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.derivedStateOf
 import com.example.projet_dev_mobile.data.entity.enum.RoleType
 import com.example.projet_dev_mobile.data.network.dto.UserDto
 
 @Composable
 fun AdminScreen(viewModel: AdminViewModel) {
-    val pendingUsers by remember { 
-    derivedStateOf { viewModel.users.filter { it.role == RoleType.NO_ROLE } } 
-}
-val activeUsers by remember { 
-    derivedStateOf { viewModel.users.filter { it.role != RoleType.NO_ROLE } } 
-}
+
+    val pendingUsers by remember {
+        derivedStateOf { viewModel.users.filter { it.role == RoleType.NO_ROLE } }
+    }
+
+    val activeUsers by remember {
+        derivedStateOf { viewModel.users.filter { it.role != RoleType.NO_ROLE } }
+    }
 
     if (viewModel.isLoading) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator()
-    }
-} else {
-    LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        // ... le reste du code
-    }
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+    } else {
+        LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
 
-        // --- SELECTION EN ATTENTE ---
-        if (pendingUsers.isNotEmpty()) {
-            item {
-                Text("En attente de validation (${pendingUsers.size})",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color(0xFF856404))
+            // --- SELECTION EN ATTENTE ---
+            if (pendingUsers.isNotEmpty()) {
+                item {
+                    Text(
+                        "En attente de validation (${pendingUsers.size})",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color(0xFF856404)
+                    )
+                }
+                items(pendingUsers) { user ->
+                    PendingUserRow(
+                        user,
+                        onAccept = { role -> viewModel.updateUserRole(user.id, role) },
+                        onRefuse = { viewModel.deleteUser(user.id) }
+                    )
+                }
+                item { HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp)) }
             }
-            items(pendingUsers) { user ->
-                PendingUserRow(user,
-                    onAccept = { role -> viewModel.updateUserRole(user.id, role) },
-                    onRefuse = { viewModel.deleteUser(user.id) }
+
+            // --- SECTION USERS ACTIFS
+            item {
+                Text(
+                    "Utilisateurs Actifs (${activeUsers.size})",
+                    style = MaterialTheme.typography.titleLarge
                 )
             }
-            item { HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))}
-        }
-
-        // --- SECTION USERS ACTIFS
-        item {
-            Text("Utilisateurs Actifs (${activeUsers.size})",
-                style = MaterialTheme.typography.titleLarge)
-        }
-        items(activeUsers) { user ->
-            ActiveUserRow(user,
-                onRoleChange = { newRole -> viewModel.updateUserRole(user.id, newRole) },
-                onDelete = { viewModel.deleteUser(user.id) }
-            )
+            items(activeUsers) { user ->
+                ActiveUserRow(
+                    user,
+                    onRoleChange = { newRole -> viewModel.updateUserRole(user.id, newRole) },
+                    onDelete = { viewModel.deleteUser(user.id) }
+                )
+            }
         }
     }
 }
-
 @Composable
 fun PendingUserRow(user: UserDto, onAccept: (RoleType) -> Unit, onRefuse: () -> Unit) {
     Card(
@@ -114,6 +122,8 @@ fun PendingUserRow(user: UserDto, onAccept: (RoleType) -> Unit, onRefuse: () -> 
         }
     }
 }
+
+
 
 @Composable
 fun ActiveUserRow(user: UserDto, onRoleChange: (RoleType) -> Unit, onDelete: () -> Unit) {
