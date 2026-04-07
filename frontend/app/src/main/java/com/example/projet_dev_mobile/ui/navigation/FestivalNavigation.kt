@@ -38,10 +38,10 @@ import com.example.projet_dev_mobile.data.entity.enum.RoleType
 import com.example.projet_dev_mobile.ui.AppViewModelProvider
 import com.example.projet_dev_mobile.ui.screens.dashboard.FestivalDetailsScreen
 import com.example.projet_dev_mobile.ui.screens.dashboard.FestivalDetailsViewModel
-import com.example.projet_dev_mobile.ui.screens.reservation.ReservationFormScreen
-import com.example.projet_dev_mobile.ui.screens.reservation.ReservationFormViewModel
-import com.example.projet_dev_mobile.ui.screens.reservation.ReservationViewModel
-import com.example.projet_dev_mobile.ui.screens.reservation.ReservationsListScreen
+import com.example.projet_dev_mobile.ui.screens.reservations.ReservationFormScreen
+import com.example.projet_dev_mobile.ui.screens.reservations.ReservationFormViewModel
+import com.example.projet_dev_mobile.ui.screens.reservations.ReservationViewModel
+import com.example.projet_dev_mobile.ui.screens.reservations.ReservationsListScreen
 import kotlinx.coroutines.launch
 
 // ---------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-package com.example.projet_dev_mobile.ui.screens.reservation
+package com.example.projet_dev_mobile.ui.screens.reservations
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -17,7 +17,7 @@ class ReservationViewModel(
     val uiState: StateFlow<ReservationUiState> = _uiState.asStateFlow()
 
 
-    fun loadReservations(festivalId: Int, isOrganisateur: Boolean = true) {
+    fun loadReservations(festivalId: Int, isOrganisateur: Boolean) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 

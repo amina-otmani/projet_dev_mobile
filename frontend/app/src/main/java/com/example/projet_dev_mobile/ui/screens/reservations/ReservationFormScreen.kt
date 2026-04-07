@@ -1,23 +1,28 @@
-package com.example.projet_dev_mobile.ui.screens.reservation
+package com.example.projet_dev_mobile.ui.screens.reservations
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.example.projet_dev_mobile.data.entity.enum.TypeReservant
-import com.example.projet_dev_mobile.data.network.dto.ReservationDto
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
 import com.example.projet_dev_mobile.data.entity.ZonePlan
+import com.example.projet_dev_mobile.data.entity.ZoneTarifaire
+import com.example.projet_dev_mobile.data.entity.enum.TypeReservant
 import com.example.projet_dev_mobile.data.network.dto.JeuDto
 import com.example.projet_dev_mobile.data.network.dto.JeuReserveDto
+import com.example.projet_dev_mobile.data.network.dto.LigneReservationDto
+import com.example.projet_dev_mobile.data.network.dto.ReservationDto
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,8 +34,9 @@ fun ReservationFormScreen(
 ) {
     val currentStep by viewModel.currentStep.collectAsState()
     val reservationState by viewModel.reservationState.collectAsState()
+    val context = LocalContext.current
 
-    LaunchedEffect(reservationIdToEdit) {
+    LaunchedEffect(festivalId, reservationIdToEdit) {
         viewModel.initForm(festivalId, reservationIdToEdit)
     }
 
@@ -45,8 +51,13 @@ fun ReservationFormScreen(
                 onNext = { viewModel.nextStep() },
                 onSubmit = {
                     viewModel.submitReservation(
-                        onSuccess = { onNavigateBack() },
-                        onError = { /* Afficher un Snackbar d'erreur */ }
+                        onSuccess = {
+                            Toast.makeText(context, "Réservation validée avec succès", Toast.LENGTH_SHORT).show()
+                            onNavigateBack()
+                        },
+                        onError = { msg ->
+                            Toast.makeText(context, "Erreur : $msg", Toast.LENGTH_LONG).show()
+                        }
                     )
                 }
             )
@@ -59,13 +70,12 @@ fun ReservationFormScreen(
                 .padding(16.dp)
         ) {
             LinearProgressIndicator(
-                progress = currentStep / 3f,
+                progress = { currentStep / 3f },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp)
             )
 
-            // Changement d'écran selon l'étape
             when (currentStep) {
                 1 -> Step1Informations(reservationState, viewModel)
                 2 -> Step2Jeux(viewModel)
@@ -82,6 +92,7 @@ fun Step1Informations(
     viewModel: ReservationFormViewModel
 ) {
     val lignes by viewModel.lignes.collectAsState()
+    val zonesTarifaires by viewModel.zonesTarifaires.collectAsState() // Ajout des zones
     val editeurs by viewModel.editeurs.collectAsState()
 
     var editeurExpanded by remember { mutableStateOf(false) }
@@ -128,7 +139,6 @@ fun Step1Informations(
 
         // 2. NOM DE LA STRUCTURE
         if (state.type == TypeReservant.EDITEUR) {
-            // Cas Éditeur : Menu déroulant
             val currentEditeurNom = editeurs.find { it.id == state.editeur_id }?.nom
                 ?: state.nom_reservant
                 ?: "Sélectionner un éditeur"
@@ -173,29 +183,17 @@ fun Step1Informations(
         HorizontalDivider()
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 3. LIGNES TARIFAIRES (Facturation)
         Text("Emplacements Réservés", style = MaterialTheme.typography.titleLarge)
         Spacer(modifier = Modifier.height(8.dp))
 
         lignes.forEachIndexed { index, ligne ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-            ) {
-                Row(
-                    modifier = Modifier.padding(8.dp).fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("Zone ID: ${ligne.zone_tarifaire_id}", modifier = Modifier.weight(1f))
-                    Text("Qté: ${ligne.quantite}", modifier = Modifier.padding(horizontal = 8.dp))
-                    IconButton(onClick = { viewModel.removeLigneTarifaire(index) }) {
-                        Icon(Icons.Default.Delete, "Supprimer", tint = MaterialTheme.colorScheme.error)
-                    }
-                }
-            }
+            LigneTarifaireCard(
+                index = index,
+                ligne = ligne,
+                zonesTarifaires = zonesTarifaires,
+                onUpdate = { updatedLigne -> viewModel.updateLigneTarifaire(index, updatedLigne) },
+                onRemove = { viewModel.removeLigneTarifaire(index) }
+            )
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -211,6 +209,126 @@ fun Step1Informations(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LigneTarifaireCard(
+    index: Int,
+    ligne: LigneReservationDto,
+    zonesTarifaires: List<ZoneTarifaire>,
+    onUpdate: (LigneReservationDto) -> Unit,
+    onRemove: () -> Unit
+) {
+    var zoneExpanded by remember { mutableStateOf(false) }
+    var typeExpanded by remember { mutableStateOf(false) }
+
+    val currentZone = zonesTarifaires.find { it.id == ligne.zone_tarifaire_id }
+    val zoneName = currentZone?.nom ?: "Sélectionner une zone"
+
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Sélection de la Zone Tarifaire
+                ExposedDropdownMenuBox(
+                    expanded = zoneExpanded,
+                    onExpandedChange = { zoneExpanded = !zoneExpanded },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    OutlinedTextField(
+                        value = zoneName,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Zone Tarifaire") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = zoneExpanded) },
+                        modifier = Modifier.fillMaxWidth().menuAnchor()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = zoneExpanded,
+                        onDismissRequest = { zoneExpanded = false }
+                    ) {
+                        zonesTarifaires.forEach { zone ->
+                            DropdownMenuItem(
+                                text = { Text("${zone.nom} (T:${zone.prix_table}€ / M2:${zone.prix_m2}€)") },
+                                onClick = {
+                                    val newPrice = if (ligne.type_emplacement == "TABLE") zone.prix_table else zone.prix_m2
+                                    onUpdate(ligne.copy(
+                                        zone_tarifaire_id = zone.id,
+                                        prix_moment_reservation = newPrice.toString()
+                                    ))
+                                    zoneExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+                IconButton(onClick = onRemove) {
+                    Icon(Icons.Default.Delete, "Supprimer", tint = MaterialTheme.colorScheme.error)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Sélection du Type (TABLE ou M2)
+                ExposedDropdownMenuBox(
+                    expanded = typeExpanded,
+                    onExpandedChange = { typeExpanded = !typeExpanded },
+                    modifier = Modifier.weight(1.2f)
+                ) {
+                    OutlinedTextField(
+                        value = ligne.type_emplacement,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Type") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = typeExpanded) },
+                        modifier = Modifier.fillMaxWidth().menuAnchor()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = typeExpanded,
+                        onDismissRequest = { typeExpanded = false }
+                    ) {
+                        listOf("TABLE", "M2").forEach { type ->
+                            DropdownMenuItem(
+                                text = { Text(type) },
+                                onClick = {
+                                    val newPrice = if (type == "TABLE") currentZone?.prix_table else currentZone?.prix_m2
+                                    onUpdate(ligne.copy(
+                                        type_emplacement = type,
+                                        prix_moment_reservation = newPrice?.toString() ?: ligne.prix_moment_reservation
+                                    ))
+                                    typeExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                // Saisie Quantité
+                OutlinedTextField(
+                    value = ligne.quantite.toString(),
+                    onValueChange = {
+                        val newQte = it.toIntOrNull() ?: 1
+                        onUpdate(ligne.copy(quantite = newQte))
+                    },
+                    label = { Text("Qté") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(0.8f)
+                )
+
+                // Saisie Prix Unitaire (Éditable manuellement en cas de remise exceptionnelle)
+                OutlinedTextField(
+                    value = ligne.prix_moment_reservation,
+                    onValueChange = { onUpdate(ligne.copy(prix_moment_reservation = it)) },
+                    label = { Text("Prix U.") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+    }
+}
 
 // ====================================================================
 // ÉTAPE 2 : LOGISTIQUE (Choix des jeux)
@@ -265,8 +383,6 @@ fun LigneJeuCard(
     onRemove: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-
-    // Retrouver le nom du jeu actuellement sélectionné pour l'affichage
     val selectedJeuName = jeuxDisponibles.find { it.id == ligne.jeu_id }?.nom ?: "Sélectionner un jeu"
 
     Card(
@@ -275,7 +391,6 @@ fun LigneJeuCard(
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // Menu déroulant pour le choix du jeu
                 ExposedDropdownMenuBox(
                     expanded = expanded,
                     onExpandedChange = { expanded = !expanded },
@@ -304,15 +419,11 @@ fun LigneJeuCard(
                         }
                     }
                 }
-
                 IconButton(onClick = onRemove) {
                     Icon(Icons.Default.Delete, contentDescription = "Supprimer", tint = MaterialTheme.colorScheme.error)
                 }
             }
-
             Spacer(modifier = Modifier.height(8.dp))
-
-            // Quantités et tables
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = ligne.nb_exemplaires.toString(),
@@ -338,7 +449,6 @@ fun LigneJeuCard(
     }
 }
 
-
 // ====================================================================
 // ÉTAPE 3 : PLACEMENT (Assignation aux Zones de Plan)
 // ====================================================================
@@ -348,7 +458,6 @@ fun Step3Placement(viewModel: ReservationFormViewModel) {
     val zonesTarifaires by viewModel.zonesTarifaires.collectAsState()
     val jeuxDisponibles by viewModel.jeuxDisponibles.collectAsState()
 
-    // On extrait toutes les "Zones de Plan" (salles/espaces physiques) disponibles dans le festival
     val allZonesPlans = remember(zonesTarifaires) {
         zonesTarifaires.flatMap { it.zonesPlan }
     }
@@ -370,9 +479,7 @@ fun Step3Placement(viewModel: ReservationFormViewModel) {
             Spacer(modifier = Modifier.height(8.dp))
 
             lignesJeux.forEachIndexed { index, ligne ->
-                // On retrouve le nom du jeu pour l'afficher clairement
                 val jeuName = jeuxDisponibles.find { it.id == ligne.jeu_id }?.nom ?: "Jeu sans nom"
-
                 LignePlacementCard(
                     jeuName = jeuName,
                     ligne = ligne,
@@ -393,8 +500,6 @@ fun LignePlacementCard(
     onUpdate: (JeuReserveDto) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-
-    // Retrouver le nom de la zone actuellement sélectionnée
     val selectedZoneName = zonesPlans.find { it.id == ligne.zone_plan_id }?.nom ?: "Non placé"
 
     Card(
@@ -404,10 +509,7 @@ fun LignePlacementCard(
         Column(modifier = Modifier.padding(12.dp)) {
             Text(text = jeuName, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
             val nbTablesTotales = (ligne.nb_exemplaires * (ligne.tables_occupees.toDoubleOrNull() ?: 0.0)).toInt()
-            Text(
-                text = "Nécessite $nbTablesTotales table(s)",
-                style = MaterialTheme.typography.bodySmall
-            )
+            Text(text = "Nécessite $nbTablesTotales table(s)", style = MaterialTheme.typography.bodySmall)
             Spacer(modifier = Modifier.height(8.dp))
 
             ExposedDropdownMenuBox(
@@ -449,15 +551,13 @@ fun BottomNavigationBar(
     onSubmit: () -> Unit
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         if (currentStep > 1) {
             OutlinedButton(onClick = onPrevious) { Text("Précédent") }
         } else {
-            Spacer(modifier = Modifier.width(8.dp)) // Pour garder l'alignement
+            Spacer(modifier = Modifier.width(8.dp))
         }
 
         if (currentStep < 3) {

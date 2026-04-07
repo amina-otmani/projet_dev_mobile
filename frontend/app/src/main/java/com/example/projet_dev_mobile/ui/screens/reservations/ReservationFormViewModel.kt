@@ -1,4 +1,4 @@
-package com.example.projet_dev_mobile.ui.screens.reservation
+package com.example.projet_dev_mobile.ui.screens.reservations
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -129,7 +129,15 @@ class ReservationFormViewModel(
 
     // --- GESTION DES LIGNES TARIFAIRES (Step 1) ---
     fun addLigneTarifaire() {
-        val newLine = LigneReservationDto(zone_tarifaire_id = 0, quantite = 1, prix_moment_reservation = "0.00", type_emplacement = "TABLE")
+        val firstZone = _zonesTarifaires.value.firstOrNull()
+        val defaultPrice = firstZone?.prix_table?.toString() ?: "0.00"
+
+        val newLine = LigneReservationDto(
+            zone_tarifaire_id = firstZone?.id ?: 0,
+            quantite = 1,
+            prix_moment_reservation = defaultPrice,
+            type_emplacement = "TABLE"
+        )
         _lignes.update { it + newLine }
     }
 

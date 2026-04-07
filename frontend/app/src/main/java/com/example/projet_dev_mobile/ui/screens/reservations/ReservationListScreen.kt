@@ -1,4 +1,4 @@
-package com.example.projet_dev_mobile.ui.screens.reservation
+package com.example.projet_dev_mobile.ui.screens.reservations
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*

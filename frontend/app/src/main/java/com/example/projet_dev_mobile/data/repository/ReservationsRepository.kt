@@ -3,7 +3,6 @@ package com.example.projet_dev_mobile.data.repository
 import com.example.projet_dev_mobile.data.network.dto.ReservationDto
 import com.example.projet_dev_mobile.data.network.dto.ReservationDetailsResponse
 import com.example.projet_dev_mobile.data.network.APIService
-import retrofit2.Response
 
 class ReservationsRepository(private val apiService: APIService) {
 

@@ -1,4 +1,4 @@
-package com.example.projet_dev_mobile.ui.screens.reservation
+package com.example.projet_dev_mobile.ui.screens.reservations
 
 import com.example.projet_dev_mobile.data.network.dto.ReservationDto
 

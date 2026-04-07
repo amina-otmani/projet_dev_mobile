@@ -11,8 +11,8 @@ import com.example.projet_dev_mobile.ui.screens.editeurs.EditeursViewModel
 import com.example.projet_dev_mobile.ui.screens.festival.FestivalEntryViewModel
 import com.example.projet_dev_mobile.ui.screens.home.FestivalHomeViewModel
 import com.example.projet_dev_mobile.ui.screens.jeux.JeuxViewModel
-import com.example.projet_dev_mobile.ui.screens.reservation.ReservationFormViewModel
-import com.example.projet_dev_mobile.ui.screens.reservation.ReservationViewModel
+import com.example.projet_dev_mobile.ui.screens.reservations.ReservationFormViewModel
+import com.example.projet_dev_mobile.ui.screens.reservations.ReservationViewModel
 
 object AppViewModelProvider {
     val Factory = viewModelFactory {

@@ -48,17 +48,20 @@ fun AppNavigation() {
     val coroutineScope = rememberCoroutineScope()
     val api = remember { RetrofitInstance.getApiService(context) }
 
-    val initialRole = remember { tokenManager.getRole() }
+    var currentRole by remember { mutableStateOf(tokenManager.getRole()) }
 
     val backStack = remember {
         mutableStateListOf<Any>().apply {
-            if (initialRole == RoleType.NO_ROLE) add(PendingApprovalDestination)
-            else if (initialRole != null) add(Destination.FESTIVAL)
-            else add(LoginDestination)
+            val role = tokenManager.getRole()
+            if (role == RoleType.NO_ROLE) {
+                add(PendingApprovalDestination)
+            } else if (role != null) {
+                add(Destination.FESTIVAL)
+            } else {
+                add(LoginDestination)
+            }
         }
     }
-
-    val currentRole = remember(tokenManager.getToken()) { tokenManager.getRole() }
 
     val isLoggedIn = currentRole != null
     val isPendingApproval = isLoggedIn && currentRole == RoleType.NO_ROLE
@@ -96,9 +99,10 @@ fun AppNavigation() {
                     actions = {
                         IconButton(onClick = {
                             tokenManager.clear()
+                            currentRole = null
                             backStack.clear()
                             backStack.add(LoginDestination)
-                        }) {
+                        }){
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ExitToApp,
                                 contentDescription = "Se déconnecter",
@@ -153,6 +157,7 @@ fun AppNavigation() {
                         LoginScreen(
                             onLoginSuccess = {
                                 val role = tokenManager.getRole()
+                                currentRole = role
                                 backStack.clear()
                                 if (role == RoleType.NO_ROLE) {
                                     backStack.add(PendingApprovalDestination)
