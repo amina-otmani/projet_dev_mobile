@@ -31,8 +31,7 @@ import com.example.projet_dev_mobile.ui.screens.editeurs.EditeursScreen
 import com.example.projet_dev_mobile.ui.screens.editeurs.EditeurJeuxScreen
 import com.example.projet_dev_mobile.ui.screens.editeurs.EditeurJeuxViewModel
 import com.example.projet_dev_mobile.ui.screens.jeux.JeuxScreen
-
-
+import kotlin.collections.filter
 
 
 object LoginDestination
@@ -133,7 +132,7 @@ fun AppNavigation() {
 
                             .filter { destination ->
                                 if (destination == Destination.ADMIN) {
-                                    currentRole.value == RoleType.ADMIN
+                                    currentRole == RoleType.ADMIN
                                 }
                                 else {
                                     true
@@ -211,7 +210,7 @@ fun AppNavigation() {
 
                                             if (userRole != null && userRole != RoleType.NO_ROLE) {
                                                 tokenManager.saveRole(userRole)
-                                                currentRole.value = userRole
+                                                currentRole = userRole
                                                 backStack.clear()
                                                 backStack.add(Destination.FESTIVAL)
                                             }
@@ -231,7 +230,7 @@ fun AppNavigation() {
                             },
                             onLogout = {
                                 tokenManager.clear()
-                                currentRole.value = null
+                                currentRole = null
                                 backStack.clear()
                                 backStack.add(LoginDestination)
                             }
@@ -283,7 +282,7 @@ fun AppNavigation() {
                     Destination.JEUX -> NavEntry(key) { JeuxScreen() }
 
                     Destination.ADMIN -> NavEntry(key) {
-                        if (currentRole.value == RoleType.ADMIN) {
+                        if (currentRole == RoleType.ADMIN) {
                             val adminViewModel: AdminViewModel = viewModel(
                                 factory = AppViewModelProvider.Factory
                             )
