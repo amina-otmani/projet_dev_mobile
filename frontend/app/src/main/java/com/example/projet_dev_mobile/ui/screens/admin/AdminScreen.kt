@@ -42,7 +42,14 @@ fun AdminScreen(viewModel: AdminViewModel) {
     val pendingUsers = viewModel.users.filter { it.role == RoleType.NO_ROLE }
     val activeUsers = viewModel.users.filter { it.role != RoleType.NO_ROLE }
 
+    if (viewModel.isLoading) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        CircularProgressIndicator()
+    }
+} else {
     LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        // ... le reste du code
+    }
 
         // --- SELECTION EN ATTENTE ---
         if (pendingUsers.isNotEmpty()) {
