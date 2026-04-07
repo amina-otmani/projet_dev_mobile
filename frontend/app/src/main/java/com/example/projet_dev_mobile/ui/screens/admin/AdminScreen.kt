@@ -139,7 +139,7 @@ fun ActiveUserRow(user: UserDto, onRoleChange: (RoleType) -> Unit, onDelete: () 
                     Icon(Icons.Default.ArrowDropDown, contentDescription = null)
                 }
                 DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                    RoleType.entries.forEach { role ->
+                   RoleType.entries.filter { it != RoleType.NO_ROLE }.forEach { role ->
                         DropdownMenuItem(
                             text = { Text(role.name) },
                             onClick = {
