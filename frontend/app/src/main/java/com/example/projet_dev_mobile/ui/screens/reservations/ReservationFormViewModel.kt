@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.math.floor
 
 class ReservationFormViewModel(
     private val repository: ReservationsRepository,
@@ -26,9 +27,20 @@ class ReservationFormViewModel(
     private val festivalsRepository: FestivalsRepository
 ) : ViewModel() {
 
+    // --- CONSTANTES ---
+    private val RATIO_M2_TABLE = 4.0
+
     // --- NAVIGATION DU WIZARD ---
     private val _currentStep = MutableStateFlow(1)
     val currentStep: StateFlow<Int> = _currentStep.asStateFlow()
+
+    // --- GESTION DES ERREURS ---
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+
+    fun clearErrorMessage() {
+        _errorMessage.value = null
+    }
 
     // --- DONNÉES DE RÉFÉRENCE (Pour alimenter les menus déroulants) ---
     private val _editeurs = MutableStateFlow<List<EditeurDto>>(emptyList())
@@ -45,7 +57,10 @@ class ReservationFormViewModel(
     // 1. Infos générales
     private val _reservationState = MutableStateFlow(ReservationDto(
         festival_id = 0,
-        type = TypeReservant.AUTRE
+        type = TypeReservant.AUTRE,
+        nombre_prises = 0,
+        remise_generale = 0.0,
+        est_present = true
     ))
     val reservationState: StateFlow<ReservationDto> = _reservationState.asStateFlow()
 
@@ -60,12 +75,19 @@ class ReservationFormViewModel(
     // --- INITIALISATION ---
     fun initForm(festivalId: Int, reservationId: Int?) {
         _currentStep.value = 1
+        clearErrorMessage()
         loadInitialData(festivalId)
 
         if (reservationId != null) {
             fetchReservationDetails(reservationId)
         } else {
-            _reservationState.value = ReservationDto(festival_id = festivalId, type = TypeReservant.AUTRE)
+            _reservationState.value = ReservationDto(
+                festival_id = festivalId,
+                type = TypeReservant.AUTRE,
+                nombre_prises = 0,
+                remise_generale = 0.0,
+                est_present = true
+            )
             _lignes.value = emptyList()
             _lignesJeux.value = emptyList()
         }
@@ -81,27 +103,36 @@ class ReservationFormViewModel(
                         _reservationState.value = details.reservation
                         _lignes.value = details.lignes
                         _lignesJeux.value = details.jeux
+                    } else {
+                        _errorMessage.value = "Les détails de la réservation sont introuvables."
                     }
+                } else {
+                    _errorMessage.value = response.exceptionOrNull()?.message ?: "Erreur lors de la récupération de la réservation."
                 }
             } catch (e: Exception) {
-                // Gérer l'erreur
+                // Gestion de l'erreur (ex: problème réseau, timeout)
+                _errorMessage.value = "Erreur réseau ou inattendue : ${e.localizedMessage}"
             }
         }
     }
 
     private fun loadInitialData(festivalId: Int) {
         viewModelScope.launch {
-            // 1. Charger les éditeurs
-            _editeurs.value = editeursRepository.getAllEditeurs() ?: emptyList()
+            try {
+                // 1. Charger les éditeurs
+                _editeurs.value = editeursRepository.getAllEditeurs() ?: emptyList()
 
-            // 2. Charger les zones tarifaires du festival actuel
-            val festival = festivalsRepository.getFestivalById(festivalId)
-            if (festival != null) {
-                _zonesTarifaires.value = festival.zonesTarifaires
+                // 2. Charger les zones tarifaires du festival actuel
+                val festival = festivalsRepository.getFestivalById(festivalId)
+                if (festival != null) {
+                    _zonesTarifaires.value = festival.zonesTarifaires
+                }
+
+                // 3. Charger les jeux disponibles
+                _jeuxDisponibles.value = jeuxRepository.getAllJeux() ?: emptyList()
+            } catch (e: Exception) {
+                _errorMessage.value = "Erreur lors du chargement des données de référence : ${e.localizedMessage}"
             }
-
-            // 3. Charger les jeux disponibles
-            _jeuxDisponibles.value = jeuxRepository.getAllJeux() ?: emptyList()
         }
     }
 
@@ -127,10 +158,44 @@ class ReservationFormViewModel(
         _reservationState.update { it.copy(editeur_id = editeurId) }
     }
 
+    fun updateNombrePrises(prises: Int) {
+        _reservationState.update { it.copy(nombre_prises = prises) }
+    }
+
+    fun updateEstPresent(estPresent: Boolean) {
+        _reservationState.update { it.copy(est_present = estPresent) }
+    }
+
+    fun updatePreferencesTables(prefs: String) {
+        _reservationState.update { it.copy(preferences_tables = prefs) }
+    }
+
+    // --- LOGIQUE DE VALIDATION DES TABLES ---
+    fun getTotalTablesReserved(): Double {
+        return _lignes.value.sumOf { ligne ->
+            if (ligne.type_emplacement == "M2") {
+                ligne.quantite / RATIO_M2_TABLE
+            } else {
+                ligne.quantite.toDouble()
+            }
+        }
+    }
+
+    fun getTotalTablesUsed(): Double {
+        return _lignesJeux.value.sumOf { ligne ->
+            ligne.nb_exemplaires * ligne.tables_occupees
+        }
+    }
+
+    fun hasTablesExceeded(): Boolean {
+        return getTotalTablesUsed() > floor(getTotalTablesReserved())
+    }
+
     // --- GESTION DES LIGNES TARIFAIRES (Step 1) ---
     fun addLigneTarifaire() {
         val firstZone = _zonesTarifaires.value.firstOrNull()
-        val defaultPrice = firstZone?.prix_table?.toString() ?: "0.00"
+
+        val defaultPrice = firstZone?.prix_table ?: 0.0
 
         val newLine = LigneReservationDto(
             zone_tarifaire_id = firstZone?.id ?: 0,
@@ -157,7 +222,7 @@ class ReservationFormViewModel(
 
     // --- GESTION DES JEUX (Step 2 & 3) ---
     fun addLigneJeu() {
-        val newJeu = JeuReserveDto(jeu_id = 0, nb_exemplaires = 1, tables_occupees = "1")
+        val newJeu = JeuReserveDto(jeu_id = 0, nb_exemplaires = 1, tables_occupees = 1.0)
         _lignesJeux.update { it + newJeu }
     }
 
@@ -177,18 +242,24 @@ class ReservationFormViewModel(
 
     // --- SAUVEGARDE FINALE ---
     fun submitReservation(onSuccess: () -> Unit, onError: (String) -> Unit) {
+        val lignesValides = _lignes.value.filter { it.zone_tarifaire_id != 0 }
+        val jeuxValides = _lignesJeux.value.filter { it.jeu_id != 0 }
 
         val finalReservationToSend = _reservationState.value.copy(
-            lignes = _lignes.value,
-            jeux = _lignesJeux.value
+            lignes = lignesValides,
+            jeux = jeuxValides
         )
 
         viewModelScope.launch {
-            val result = repository.saveReservation(finalReservationToSend)
-            if (result.isSuccess) {
-                onSuccess()
-            } else {
-                onError(result.exceptionOrNull()?.message ?: "Erreur lors de la sauvegarde")
+            try {
+                val result = repository.saveReservation(finalReservationToSend)
+                if (result.isSuccess) {
+                    onSuccess()
+                } else {
+                    onError(result.exceptionOrNull()?.message ?: "Erreur lors de la sauvegarde")
+                }
+            } catch (e: Exception) {
+                onError("Erreur réseau : ${e.localizedMessage}")
             }
         }
     }

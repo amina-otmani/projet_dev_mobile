@@ -9,7 +9,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,10 +33,43 @@ fun ReservationFormScreen(
 ) {
     val currentStep by viewModel.currentStep.collectAsState()
     val reservationState by viewModel.reservationState.collectAsState()
+
+    // Ajout de l'observation de l'erreur
+    val errorMessage by viewModel.errorMessage.collectAsState()
+
     val context = LocalContext.current
+
+    // Gestion de l'alerte de dépassement
+    var showTablesWarningDialog by remember { mutableStateOf(false) }
+    var pendingAction by remember { mutableStateOf<(() -> Unit)?>(null) }
 
     LaunchedEffect(festivalId, reservationIdToEdit) {
         viewModel.initForm(festivalId, reservationIdToEdit)
+    }
+
+    // Affichage des erreurs via Toast
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let { msg ->
+            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+            viewModel.clearErrorMessage()
+        }
+    }
+
+    if (showTablesWarningDialog) {
+        AlertDialog(
+            onDismissRequest = { showTablesWarningDialog = false },
+            title = { Text("Attention : Dépassement") },
+            text = { Text("Vous utilisez plus de tables pour vos jeux que vous n'en avez réservé en zone tarifaire. Voulez-vous continuer quand même ?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showTablesWarningDialog = false
+                    pendingAction?.invoke()
+                }) { Text("Continuer") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTablesWarningDialog = false }) { Text("Annuler") }
+            }
+        )
     }
 
     Scaffold(
@@ -48,17 +80,40 @@ fun ReservationFormScreen(
             BottomNavigationBar(
                 currentStep = currentStep,
                 onPrevious = { viewModel.previousStep() },
-                onNext = { viewModel.nextStep() },
-                onSubmit = {
+                onSavePartial = {
                     viewModel.submitReservation(
                         onSuccess = {
-                            Toast.makeText(context, "Réservation validée avec succès", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Brouillon sauvegardé", Toast.LENGTH_SHORT).show()
                             onNavigateBack()
                         },
-                        onError = { msg ->
-                            Toast.makeText(context, "Erreur : $msg", Toast.LENGTH_LONG).show()
-                        }
+                        onError = { msg -> Toast.makeText(context, "Erreur : $msg", Toast.LENGTH_LONG).show() }
                     )
+                },
+                onNext = {
+                    if (currentStep == 2 && viewModel.hasTablesExceeded()) {
+                        pendingAction = { viewModel.nextStep() }
+                        showTablesWarningDialog = true
+                    } else {
+                        viewModel.nextStep()
+                    }
+                },
+                onSubmit = {
+                    val submitAction = {
+                        viewModel.submitReservation(
+                            onSuccess = {
+                                Toast.makeText(context, "Réservation validée avec succès", Toast.LENGTH_SHORT).show()
+                                onNavigateBack()
+                            },
+                            onError = { msg -> Toast.makeText(context, "Erreur : $msg", Toast.LENGTH_LONG).show() }
+                        )
+                    }
+
+                    if (viewModel.hasTablesExceeded()) {
+                        pendingAction = submitAction
+                        showTablesWarningDialog = true
+                    } else {
+                        submitAction()
+                    }
                 }
             )
         }
@@ -92,7 +147,7 @@ fun Step1Informations(
     viewModel: ReservationFormViewModel
 ) {
     val lignes by viewModel.lignes.collectAsState()
-    val zonesTarifaires by viewModel.zonesTarifaires.collectAsState() // Ajout des zones
+    val zonesTarifaires by viewModel.zonesTarifaires.collectAsState()
     val editeurs by viewModel.editeurs.collectAsState()
 
     var editeurExpanded by remember { mutableStateOf(false) }
@@ -117,7 +172,7 @@ fun Step1Informations(
                 readOnly = true,
                 label = { Text("Type de réservant") },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = typeExpanded) },
-                modifier = Modifier.fillMaxWidth().menuAnchor()
+                modifier = Modifier.fillMaxWidth().menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable)
             )
             ExposedDropdownMenu(
                 expanded = typeExpanded,
@@ -153,7 +208,7 @@ fun Step1Informations(
                     readOnly = true,
                     label = { Text("Éditeur") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = editeurExpanded) },
-                    modifier = Modifier.fillMaxWidth().menuAnchor()
+                    modifier = Modifier.fillMaxWidth().menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                 )
                 ExposedDropdownMenu(
                     expanded = editeurExpanded,
@@ -178,6 +233,43 @@ fun Step1Informations(
                 modifier = Modifier.fillMaxWidth()
             )
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // 3. PRÉSENCE PHYSIQUE (Seulement pour Éditeur)
+        if (state.type == TypeReservant.EDITEUR) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Checkbox(
+                    checked = state.est_present,
+                    onCheckedChange = { viewModel.updateEstPresent(it) }
+                )
+                Text("Présent physiquement au festival")
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        // 4. NOMBRE DE PRISES ÉLECTRIQUES
+        OutlinedTextField(
+            value = state.nombre_prises.toString(),
+            onValueChange = { viewModel.updateNombrePrises(it.toIntOrNull() ?: 0) },
+            label = { Text("Nombre de prises électriques") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // 5. PRÉFÉRENCES TABLES
+        OutlinedTextField(
+            value = state.preferences_tables ?: "",
+            onValueChange = { viewModel.updatePreferencesTables(it) },
+            label = { Text("Commentaire - Préférences des tables") },
+            modifier = Modifier.fillMaxWidth(),
+            minLines = 3
+        )
 
         Spacer(modifier = Modifier.height(24.dp))
         HorizontalDivider()
@@ -242,7 +334,7 @@ fun LigneTarifaireCard(
                         readOnly = true,
                         label = { Text("Zone Tarifaire") },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = zoneExpanded) },
-                        modifier = Modifier.fillMaxWidth().menuAnchor()
+                        modifier = Modifier.fillMaxWidth().menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                     )
                     ExposedDropdownMenu(
                         expanded = zoneExpanded,
@@ -255,7 +347,7 @@ fun LigneTarifaireCard(
                                     val newPrice = if (ligne.type_emplacement == "TABLE") zone.prix_table else zone.prix_m2
                                     onUpdate(ligne.copy(
                                         zone_tarifaire_id = zone.id,
-                                        prix_moment_reservation = newPrice.toString()
+                                        prix_moment_reservation = newPrice
                                     ))
                                     zoneExpanded = false
                                 }
@@ -283,7 +375,7 @@ fun LigneTarifaireCard(
                         readOnly = true,
                         label = { Text("Type") },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = typeExpanded) },
-                        modifier = Modifier.fillMaxWidth().menuAnchor()
+                        modifier = Modifier.fillMaxWidth().menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                     )
                     ExposedDropdownMenu(
                         expanded = typeExpanded,
@@ -296,7 +388,7 @@ fun LigneTarifaireCard(
                                     val newPrice = if (type == "TABLE") currentZone?.prix_table else currentZone?.prix_m2
                                     onUpdate(ligne.copy(
                                         type_emplacement = type,
-                                        prix_moment_reservation = newPrice?.toString() ?: ligne.prix_moment_reservation
+                                        prix_moment_reservation = newPrice ?: ligne.prix_moment_reservation
                                     ))
                                     typeExpanded = false
                                 }
@@ -317,10 +409,13 @@ fun LigneTarifaireCard(
                     modifier = Modifier.weight(0.8f)
                 )
 
-                // Saisie Prix Unitaire (Éditable manuellement en cas de remise exceptionnelle)
+                // Saisie Prix Unitaire
                 OutlinedTextField(
-                    value = ligne.prix_moment_reservation,
-                    onValueChange = { onUpdate(ligne.copy(prix_moment_reservation = it)) },
+                    value = ligne.prix_moment_reservation.toString(),
+                    onValueChange = {
+                        val newPrice = it.toDoubleOrNull() ?: 0.0
+                        onUpdate(ligne.copy(prix_moment_reservation = newPrice))
+                    },
                     label = { Text("Prix U.") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.weight(1f)
@@ -330,13 +425,14 @@ fun LigneTarifaireCard(
     }
 }
 
-// ====================================================================
-// ÉTAPE 2 : LOGISTIQUE (Choix des jeux)
-// ====================================================================
 @Composable
 fun Step2Jeux(viewModel: ReservationFormViewModel) {
     val lignesJeux by viewModel.lignesJeux.collectAsState()
     val jeuxDisponibles by viewModel.jeuxDisponibles.collectAsState()
+
+    val totalReserved = viewModel.getTotalTablesReserved()
+    val totalUsed = viewModel.getTotalTablesUsed()
+    val hasExceeded = viewModel.hasTablesExceeded()
 
     Column(
         modifier = Modifier
@@ -344,7 +440,15 @@ fun Step2Jeux(viewModel: ReservationFormViewModel) {
             .verticalScroll(rememberScrollState())
     ) {
         Text("Jeux Exposés", style = MaterialTheme.typography.titleLarge)
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Affichage du compteur d'utilisation des tables
+        Text(
+            text = "Utilisation : $totalUsed / ${kotlin.math.floor(totalReserved).toInt()} tables réservées",
+            color = if (hasExceeded) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
 
         if (jeuxDisponibles.isEmpty()) {
             Text("Chargement des jeux ou aucun jeu disponible...", color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -402,7 +506,9 @@ fun LigneJeuCard(
                         readOnly = true,
                         label = { Text("Jeu n°${index + 1}") },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                        modifier = Modifier.fillMaxWidth().menuAnchor()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                     )
                     ExposedDropdownMenu(
                         expanded = expanded,
@@ -436,9 +542,10 @@ fun LigneJeuCard(
                     modifier = Modifier.weight(1f)
                 )
                 OutlinedTextField(
-                    value = ligne.tables_occupees,
+                    value = ligne.tables_occupees.toString(),
                     onValueChange = { newValue ->
-                        onUpdate(ligne.copy(tables_occupees = newValue))
+                        val newTables = newValue.toDoubleOrNull() ?: 1.0
+                        onUpdate(ligne.copy(tables_occupees = newTables))
                     },
                     label = { Text("Tables/Exemplaire") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -449,9 +556,6 @@ fun LigneJeuCard(
     }
 }
 
-// ====================================================================
-// ÉTAPE 3 : PLACEMENT (Assignation aux Zones de Plan)
-// ====================================================================
 @Composable
 fun Step3Placement(viewModel: ReservationFormViewModel) {
     val lignesJeux by viewModel.lignesJeux.collectAsState()
@@ -508,7 +612,7 @@ fun LignePlacementCard(
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(text = jeuName, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
-            val nbTablesTotales = (ligne.nb_exemplaires * (ligne.tables_occupees.toDoubleOrNull() ?: 0.0)).toInt()
+            val nbTablesTotales = (ligne.nb_exemplaires * ligne.tables_occupees).toInt()
             Text(text = "Nécessite $nbTablesTotales table(s)", style = MaterialTheme.typography.bodySmall)
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -522,7 +626,9 @@ fun LignePlacementCard(
                     readOnly = true,
                     label = { Text("Emplacement (Salle)") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                    modifier = Modifier.fillMaxWidth().menuAnchor()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                 )
                 ExposedDropdownMenu(
                     expanded = expanded,
@@ -547,6 +653,7 @@ fun LignePlacementCard(
 fun BottomNavigationBar(
     currentStep: Int,
     onPrevious: () -> Unit,
+    onSavePartial: () -> Unit,
     onNext: () -> Unit,
     onSubmit: () -> Unit
 ) {
@@ -560,10 +667,13 @@ fun BottomNavigationBar(
             Spacer(modifier = Modifier.width(8.dp))
         }
 
-        if (currentStep < 3) {
-            Button(onClick = onNext) { Text("Suivant") }
-        } else {
-            Button(onClick = onSubmit) { Text("Valider") }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (currentStep < 3) {
+                OutlinedButton(onClick = onSavePartial) { Text("Sauvegarder") }
+                Button(onClick = onNext) { Text("Suivant") }
+            } else {
+                Button(onClick = onSubmit) { Text("Valider") }
+            }
         }
     }
 }

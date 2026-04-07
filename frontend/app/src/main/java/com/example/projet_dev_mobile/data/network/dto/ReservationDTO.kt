@@ -12,9 +12,9 @@ data class ReservationDto(
     val editeur_id: Int? = null,
     val autre_nom_reservant: String? = null,
     val nom_reservant: String? = null,
-    val nombre_prises: Int = 0,
-    val remise_generale: String = "0.00",
-    val est_present: Boolean = true,
+    val nombre_prises: Int,
+    val remise_generale: Double,
+    val est_present: Boolean,
     val preferences_tables: String? = null,
     val statut: EtatReservation? = EtatReservation.PRESENT,
     val date_creation: String? = null,
@@ -30,7 +30,7 @@ data class LigneReservationDto(
     val id: Int? = null,
     val zone_tarifaire_id: Int,
     val quantite: Int,
-    val prix_moment_reservation: String,
+    val prix_moment_reservation: Double,
     val type_emplacement: String
 )
 
@@ -39,7 +39,7 @@ data class JeuReserveDto(
     val id: Int? = null,
     val jeu_id: Int,
     val nb_exemplaires: Int,
-    val tables_occupees: String,
+    val tables_occupees: Double,
     val type_table: String? = null,
     val zone_plan_id: Int? = null,
     val jeu_nom: String? = null,
