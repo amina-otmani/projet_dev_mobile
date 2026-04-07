@@ -16,7 +16,7 @@ class AdminRepository(private val apiService: APIService) {
         return reponse.isSuccessful
     }
 
-    suspend fun ddeleteUser(userId: Int): Boolean {
+    suspend fun deleteUser(userId: Int): Boolean {
         val reponse = apiService.deleteUser(userId)
         return reponse.isSuccessful
     }
