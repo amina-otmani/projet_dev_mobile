@@ -5,6 +5,7 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.projet_dev_mobile.FestivalApplication
+import com.example.projet_dev_mobile.ui.screens.admin.AdminViewModel
 import com.example.projet_dev_mobile.ui.screens.dashboard.FestivalDetailsViewModel
 import com.example.projet_dev_mobile.ui.screens.editeurs.EditeurJeuxViewModel
 import com.example.projet_dev_mobile.ui.screens.editeurs.EditeursViewModel
@@ -13,6 +14,7 @@ import com.example.projet_dev_mobile.ui.screens.home.FestivalHomeViewModel
 import com.example.projet_dev_mobile.ui.screens.jeux.JeuxViewModel
 import com.example.projet_dev_mobile.ui.screens.reservations.ReservationFormViewModel
 import com.example.projet_dev_mobile.ui.screens.reservations.ReservationViewModel
+import com.example.projet_dev_mobile.ui.screens.workflow.WorkflowViewModel
 
 object AppViewModelProvider {
     val Factory = viewModelFactory {
@@ -35,6 +37,12 @@ object AppViewModelProvider {
         initializer {
             ReservationViewModel(
                 festivalApplication().container.reservationsRepository
+            )
+        }
+
+        initializer {
+            AdminViewModel(
+                festivalApplication().container.adminRepository
             )
         }
 
@@ -64,6 +72,15 @@ object AppViewModelProvider {
                 editeurId = editeurId,
                 editeurNom = editeurNom,
                 jeuxRepository = festivalApplication().container.jeuxRepository
+            )
+        }
+    }
+
+    fun workflowFactory(festivalId: Int) = viewModelFactory {
+        initializer {
+            WorkflowViewModel(
+                festivalId = festivalId,
+                suiviRepository = festivalApplication().container.suiviRepository
             )
         }
     }

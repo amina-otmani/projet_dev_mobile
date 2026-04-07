@@ -42,6 +42,8 @@ import com.example.projet_dev_mobile.ui.screens.reservations.ReservationFormScre
 import com.example.projet_dev_mobile.ui.screens.reservations.ReservationFormViewModel
 import com.example.projet_dev_mobile.ui.screens.reservations.ReservationViewModel
 import com.example.projet_dev_mobile.ui.screens.reservations.ReservationsListScreen
+import com.example.projet_dev_mobile.ui.screens.workflow.WorkflowScreen
+import com.example.projet_dev_mobile.ui.screens.workflow.WorkflowViewModel
 import kotlinx.coroutines.launch
 
 // ---------------------------------------------------------------------------
@@ -155,7 +157,11 @@ fun FestivalNavigation(
                                 }
 
                                 FestivalDestination.WORKFLOW -> NavEntry(key) {
-                                    Text("Workflow du festival $festivalId")
+                                    val workflowViewModel = viewModel<WorkflowViewModel>(
+                                        key = "workflow_$festivalId",
+                                        factory = AppViewModelProvider.workflowFactory(festivalId)
+                                    )
+                                    WorkflowScreen(viewModel = workflowViewModel)
                                 }
 
                                 FestivalDestination.RESERVATIONS -> NavEntry(key) {
