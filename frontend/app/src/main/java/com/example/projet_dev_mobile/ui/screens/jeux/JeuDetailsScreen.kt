@@ -114,7 +114,7 @@ fun JeuDetailsContent(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = "Editeur: ${jeu.editeur?.nom ?: "Inconnu"}",
+                text = "${jeu.editeur?.nom ?: "Inconnu"}",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.primary
             )

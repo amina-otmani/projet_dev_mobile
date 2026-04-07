@@ -55,7 +55,8 @@ object AppViewModelProvider {
 
         initializer {
             JeuxViewModel(
-                festivalApplication().container.jeuxRepository
+                festivalApplication().container.jeuxRepository,
+                festivalApplication().container.editeursRepository
             )
         }
 
@@ -98,7 +99,8 @@ object AppViewModelProvider {
         initializer {
             JeuDetailsViewModel(
                 jeuId = jeuId,
-                jeuxRepository = festivalApplication().container.jeuxRepository
+                jeuxRepository = festivalApplication().container.jeuxRepository,
+                editeurRepository = festivalApplication().container.editeursRepository
             )
         }
     }

@@ -3,7 +3,7 @@ package com.example.projet_dev_mobile.ui.screens.jeux
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.projet_dev_mobile.data.entity.enum.GameType
-import com.example.projet_dev_mobile.data.network.dto.JeuDto
+import com.example.projet_dev_mobile.data.repository.EditeursRepository
 import com.example.projet_dev_mobile.data.repository.JeuxRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,7 +12,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class JeuxViewModel(
-    private val jeuxRepository: JeuxRepository
+    private val jeuxRepository: JeuxRepository,
+    private val editeursRepository: EditeursRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(JeuxUiState())
@@ -28,10 +29,14 @@ class JeuxViewModel(
         viewModelScope.launch {
             val jeux = jeuxRepository.getAllJeux()
             if (jeux != null) {
+                val jeuxAvecEditeur = jeux.map { jeu ->
+                    val editeur = editeursRepository.getEditeurById(jeu.editeur_id)
+                    jeu.copy(editeur = editeur)
+                }
                 _uiState.update {
                     it.copy(
-                        jeux = jeux,
-                        availableCategories = jeux.map { it.typeG }.distinct().sorted(),
+                        jeux = jeuxAvecEditeur,
+                        availableCategories = jeuxAvecEditeur.map { it.typeG }.distinct().sorted(),
                         isLoading = false
                     )
                 }
