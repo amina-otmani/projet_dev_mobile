@@ -30,6 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.projet_dev_mobile.data.entity.enum.GameType
+import com.example.projet_dev_mobile.data.network.dto.EditeurDto
 import com.example.projet_dev_mobile.ui.AppViewModelProvider
 import com.example.projet_dev_mobile.utils.FormSelectionTitle
 import kotlinx.coroutines.launch
@@ -45,6 +46,7 @@ fun JeuEntryScreen(
         innerPadding ->
         JeuEntryBody(
             jeuUiState = viewModel.jeuUiState,
+            editeurs = viewModel.editeurs,
             onJeuValueChange = viewModel::updateUiState,
             onSaveClick = {
                 coroutineScope.launch {
@@ -63,6 +65,7 @@ fun JeuEntryScreen(
 @Composable
 fun JeuEntryBody(
     jeuUiState: JeuUiState,
+    editeurs: List<EditeurDto>,
     onJeuValueChange: (JeuDetails) -> Unit,
     onSaveClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -73,6 +76,7 @@ fun JeuEntryBody(
     ) {
         JeuInputForm(
             jeuDetails = jeuUiState.jeuDetails,
+            editeurs = editeurs,
             onValueChange = onJeuValueChange,
             modifier = Modifier.fillMaxWidth()
         )
@@ -90,6 +94,7 @@ fun JeuEntryBody(
 @Composable
 fun JeuInputForm(
     jeuDetails: JeuDetails,
+    editeurs: List<EditeurDto>,
     modifier: Modifier = Modifier,
     onValueChange: (JeuDetails) -> Unit = {},
     enabled: Boolean = true
@@ -137,13 +142,10 @@ fun JeuInputForm(
         Spacer(modifier = Modifier.padding(16.dp))
 
         FormSelectionTitle("Éditeur")
-        OutlinedTextField(
-            value = if (jeuDetails.editeur_id == 0) "" else jeuDetails.editeur_id.toString(),
-            onValueChange = { onValueChange(jeuDetails.copy(editeur_id = it.toIntOrNull() ?: 0)) },
-            label = { Text("ID Éditeur") },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            enabled = enabled
+        EditeurDropdown(
+            editeurs = editeurs,
+            selectedEditeurId = jeuDetails.editeur_id,
+            onEditeurSelected = { onValueChange(jeuDetails.copy(editeur_id = it)) }
         )
 
         Spacer(modifier = Modifier.padding(16.dp))
@@ -192,23 +194,45 @@ fun GameTypeDropdown(
     }
 }
 
-@Preview(showBackground = true)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun JeuEntryScreenPreview() {
-    val fakeState = JeuUiState(
-        jeuDetails = JeuDetails(
-            nom = "Mon jeu",
-            typeG = GameType.ACTION,
-            age_min = 7,
-            age_max = 99,
-            editeur_id = 1
-        ),
-        isEntryValid = true
-    )
+fun EditeurDropdown(
+    editeurs: List<EditeurDto>,
+    selectedEditeurId: Int,
+    onEditeurSelected: (Int) -> Unit,
+    enabled: Boolean = true
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val selectedEditeur = editeurs.find { it.id == selectedEditeurId }
 
-    JeuEntryBody(
-        jeuUiState = fakeState,
-        onJeuValueChange = {},
-        onSaveClick = {}
-    )
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { if (enabled) expanded = it }
+    ) {
+        OutlinedTextField(
+            value = selectedEditeur?.nom ?: "Sélectionner un éditeur",
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Éditeur") },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(),
+            enabled = enabled
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            editeurs.forEach { editeur ->
+                DropdownMenuItem(
+                    text = { Text(editeur.nom) },
+                    onClick = {
+                        onEditeurSelected(editeur.id)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
 }

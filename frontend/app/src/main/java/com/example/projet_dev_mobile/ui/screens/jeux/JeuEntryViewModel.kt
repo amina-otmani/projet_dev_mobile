@@ -6,11 +6,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.projet_dev_mobile.data.entity.enum.GameType
 import com.example.projet_dev_mobile.data.network.dto.AuteurDto
 import com.example.projet_dev_mobile.data.network.dto.EditeurDto
 import com.example.projet_dev_mobile.data.network.dto.JeuDto
+import com.example.projet_dev_mobile.data.repository.EditeursRepository
 import com.example.projet_dev_mobile.data.repository.JeuxRepository
+import kotlinx.coroutines.launch
 
 data class JeuUiState(
     val jeuDetails: JeuDetails = JeuDetails(),
@@ -39,9 +42,21 @@ fun JeuDetails.toJeu(): JeuDto = JeuDto(
     auteurs = auteurs
 )
 
-class JeuEntryViewModel(private val jeuxRepository: JeuxRepository) : ViewModel() {
+class JeuEntryViewModel(
+    private val jeuxRepository: JeuxRepository,
+    private val editeursRepository: EditeursRepository
+) : ViewModel() {
     var jeuUiState by mutableStateOf(JeuUiState())
         private set
+
+    var editeurs by mutableStateOf<List<EditeurDto>>(emptyList())
+        private set
+
+    init {
+        viewModelScope.launch {
+            editeurs = editeursRepository.getAllEditeurs() ?: emptyList()
+        }
+    }
 
     fun updateUiState(details: JeuDetails) {
         jeuUiState = JeuUiState(
