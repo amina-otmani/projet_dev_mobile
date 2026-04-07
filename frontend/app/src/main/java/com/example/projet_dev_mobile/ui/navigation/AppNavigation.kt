@@ -47,28 +47,30 @@ data class EditeurDetailsDestination(val id: Int, val nom: String)
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+
 fun AppNavigation() {
     val context = LocalContext.current
     val tokenManager = remember { TokenManager(context) }
-
     val coroutineScope = rememberCoroutineScope()
     val api = remember { RetrofitInstance.getApiService(context) }
 
-    val currentRole = remember { mutableStateOf(tokenManager.getRole()) }
-    val isLoggedIn = currentRole.value != null
-    val isPendingApproval = isLoggedIn && currentRole.value == RoleType.NO_ROLE
+    var currentRole by remember { mutableStateOf(tokenManager.getRole()) }
 
     val backStack = remember {
         mutableStateListOf<Any>().apply {
-            if (isPendingApproval) {
+            val role = tokenManager.getRole()
+            if (role == RoleType.NO_ROLE) {
                 add(PendingApprovalDestination)
-            } else if (isLoggedIn) {
+            } else if (role != null) {
                 add(Destination.FESTIVAL)
             } else {
                 add(LoginDestination)
             }
         }
     }
+
+    val isLoggedIn = currentRole != null
+    val isPendingApproval = isLoggedIn && currentRole == RoleType.NO_ROLE
 
     val currentDestination = backStack.lastOrNull()
     val isFestivalScreen = backStack.isInFestivalContext() ||
@@ -103,9 +105,10 @@ fun AppNavigation() {
                     actions = {
                         IconButton(onClick = {
                             tokenManager.clear()
+                            currentRole = null
                             backStack.clear()
                             backStack.add(LoginDestination)
-                        }) {
+                        }){
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ExitToApp,
                                 contentDescription = "Se déconnecter",
@@ -172,7 +175,7 @@ fun AppNavigation() {
                         LoginScreen(
                             onLoginSuccess = {
                                 val role = tokenManager.getRole()
-                                currentRole.value = role
+                                currentRole = role
                                 backStack.clear()
                                 if (role == RoleType.NO_ROLE) {
                                     backStack.add(PendingApprovalDestination)
@@ -247,6 +250,7 @@ fun AppNavigation() {
                         NavEntry(destination) {
                             FestivalNavigation(
                                 festivalId = destination.id,
+                                userRole = currentRole,
                                 onBack = { backStack.removeLastOrNull() }
                             )
                         }
