@@ -39,8 +39,12 @@ import com.example.projet_dev_mobile.data.network.dto.UserDto
 
 @Composable
 fun AdminScreen(viewModel: AdminViewModel) {
-    val pendingUsers = viewModel.users.filter { it.role == RoleType.NO_ROLE }
-    val activeUsers = viewModel.users.filter { it.role != RoleType.NO_ROLE }
+    val pendingUsers by remember { 
+    derivedStateOf { viewModel.users.filter { it.role == RoleType.NO_ROLE } } 
+}
+val activeUsers by remember { 
+    derivedStateOf { viewModel.users.filter { it.role != RoleType.NO_ROLE } } 
+}
 
     if (viewModel.isLoading) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
