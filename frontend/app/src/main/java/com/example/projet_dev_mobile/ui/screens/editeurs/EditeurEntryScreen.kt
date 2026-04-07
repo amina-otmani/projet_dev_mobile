@@ -125,7 +125,12 @@ fun EditeurInputForm(
         editeurDetails.contacts.forEachIndexed { index, contact ->
             ContactItem(
                 contact = contact,
-                onDelete = { onDeleteContact(index) }
+                onDelete = { onDeleteContact(index) },
+                onContactChange = { updatedContact ->
+                    val updatedList = editeurDetails.contacts.toMutableList()
+                    updatedList[index] = updatedContact
+                    onValueChange(editeurDetails.copy(contacts = updatedList))
+                }
             )
         }
 
@@ -146,6 +151,7 @@ fun EditeurInputForm(
 fun ContactItem(
     contact: ContactDetails,
     onDelete: () -> Unit,
+    onContactChange: (ContactDetails) -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -171,14 +177,14 @@ fun ContactItem(
             ) {
                 OutlinedTextField(
                     value = contact.prenom,
-                    onValueChange = {},
+                    onValueChange = { onContactChange(contact.copy(prenom = it)) },
                     label = { Text("Prénom") },
                     modifier = Modifier.weight(1f),
                     singleLine = true
                 )
                 OutlinedTextField(
                     value = contact.nom,
-                    onValueChange = {},
+                    onValueChange = { onContactChange(contact.copy(nom = it)) },
                     label = { Text("Nom") },
                     modifier = Modifier.weight(1f),
                     singleLine = true
@@ -186,7 +192,7 @@ fun ContactItem(
             }
             OutlinedTextField(
                 value = contact.email,
-                onValueChange = {},
+                onValueChange = { onContactChange(contact.copy(email = it)) },
                 label = { Text("Email") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
@@ -194,7 +200,7 @@ fun ContactItem(
             )
             OutlinedTextField(
                 value = contact.poste,
-                onValueChange = {},
+                onValueChange = { onContactChange(contact.copy(poste = it)) },
                 label = { Text("Téléphone") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
