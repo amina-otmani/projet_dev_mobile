@@ -33,8 +33,6 @@ import com.example.projet_dev_mobile.ui.screens.editeurs.EditeurJeuxViewModel
 import com.example.projet_dev_mobile.ui.screens.jeux.JeuxScreen
 
 
-
-
 object LoginDestination
 object RegisterDestination
 object PendingApprovalDestination
@@ -130,35 +128,32 @@ fun AppNavigation() {
                         contentColor = MaterialTheme.colorScheme.primary
                     ) {
                         Destination.entries
-
                             .filter { destination ->
                                 if (destination == Destination.ADMIN) {
-                                    currentRole.value == RoleType.ADMIN
+                                    currentRole == RoleType.ADMIN
                                 }
                                 else {
                                     true
                                 }
-
                             }
-
                             .forEach { destination ->
-                            NavigationBarItem(
-                                selected = currentDestination == destination,
-                                onClick = {
-                                    if (currentDestination != destination) {
-                                        backStack.clear()
-                                        backStack.add(destination)
-                                    }
-                                },
-                                icon = {
-                                    Icon(
-                                        imageVector = destination.icon,
-                                        contentDescription = destination.contentDescription
-                                    )
-                                },
-                                label = { Text(destination.label) }
-                            )
-                        }
+                                NavigationBarItem(
+                                    selected = currentDestination == destination,
+                                    onClick = {
+                                        if (currentDestination != destination) {
+                                            backStack.clear()
+                                            backStack.add(destination)
+                                        }
+                                    },
+                                    icon = {
+                                        Icon(
+                                            imageVector = destination.icon,
+                                            contentDescription = destination.contentDescription
+                                        )
+                                    },
+                                    label = { Text(destination.label) }
+                                )
+                            }
                     }
                 }
             }
@@ -167,7 +162,6 @@ fun AppNavigation() {
         NavDisplay(
             backStack = backStack,
             onBack = { backStack.removeLastOrNull() },
-            // car FestivalDestination a deja un innerPadding
             modifier = if (isFestivalScreen) Modifier else Modifier.padding(innerPadding),
             entryProvider = { key ->
                 when (key) {
@@ -211,7 +205,7 @@ fun AppNavigation() {
 
                                             if (userRole != null && userRole != RoleType.NO_ROLE) {
                                                 tokenManager.saveRole(userRole)
-                                                currentRole.value = userRole
+                                                currentRole = userRole
                                                 backStack.clear()
                                                 backStack.add(Destination.FESTIVAL)
                                             }
@@ -231,7 +225,7 @@ fun AppNavigation() {
                             },
                             onLogout = {
                                 tokenManager.clear()
-                                currentRole.value = null
+                                currentRole = null
                                 backStack.clear()
                                 backStack.add(LoginDestination)
                             }
@@ -283,7 +277,7 @@ fun AppNavigation() {
                     Destination.JEUX -> NavEntry(key) { JeuxScreen() }
 
                     Destination.ADMIN -> NavEntry(key) {
-                        if (currentRole.value == RoleType.ADMIN) {
+                        if (currentRole == RoleType.ADMIN) {
                             val adminViewModel: AdminViewModel = viewModel(
                                 factory = AppViewModelProvider.Factory
                             )
