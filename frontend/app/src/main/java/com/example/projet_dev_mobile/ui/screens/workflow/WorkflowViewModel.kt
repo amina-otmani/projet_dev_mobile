@@ -2,6 +2,7 @@ package com.example.projet_dev_mobile.ui.screens.workflow
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.projet_dev_mobile.data.entity.enum.EtatSuivi
 import com.example.projet_dev_mobile.data.network.dto.SuiviDto
 import com.example.projet_dev_mobile.data.repository.SuiviRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,7 +24,7 @@ class WorkflowViewModel(
     }
 
     fun fetchSuivis() {
-        _uiState.update { it.copy(isLoading = true, isError = false) }
+        _uiState.update { it.copy(isLoading = true, hasLoadError = false) }
 
         viewModelScope.launch {
             val suivis = suiviRepository.getSuivisByFestival(festivalId)
@@ -37,16 +38,17 @@ class WorkflowViewModel(
                             searchQuery = it.searchQuery
                         ),
                         isLoading = false,
-                        isError = false
+                        hasLoadError = false,
+                        hasMutationError = false
                     )
                 }
             } else {
-                _uiState.update { it.copy(isLoading = false, isError = true) }
+                _uiState.update { it.copy(isLoading = false, hasLoadError = true) }
             }
         }
     }
 
-    fun onEtatFilterChange(etat: String) {
+    fun onEtatFilterChange(etat: EtatSuivi?) {
         _uiState.update {
             it.copy(
                 selectedEtatFilter = etat,
@@ -82,12 +84,12 @@ class WorkflowViewModel(
             if (success) {
                 fetchSuivis()
             } else {
-                _uiState.update { it.copy(isError = true) }
+                _uiState.update { it.copy(hasMutationError = true) }
             }
         }
     }
 
-    fun changerEtat(editeurId: Int, nouvelEtat: String) {
+    fun changerEtat(editeurId: Int, nouvelEtat: EtatSuivi) {
         viewModelScope.launch {
             val success = suiviRepository.updateSuivi(
                 festivalId = festivalId,
@@ -98,20 +100,24 @@ class WorkflowViewModel(
             if (success) {
                 fetchSuivis()
             } else {
-                _uiState.update { it.copy(isError = true) }
+                _uiState.update { it.copy(hasMutationError = true) }
             }
         }
     }
 
+    fun clearMutationError() {
+        _uiState.update { it.copy(hasMutationError = false) }
+    }
+
     private fun applyFilters(
         suivis: List<SuiviDto>,
-        etatFilter: String,
+        etatFilter: EtatSuivi?,
         searchQuery: String
     ): List<SuiviDto> {
         val normalizedQuery = searchQuery.trim()
 
         return suivis.filter { suivi ->
-            val etatMatch = etatFilter == ETAT_TOUS || suivi.etat == etatFilter
+            val etatMatch = etatFilter == null || suivi.etat == etatFilter.name
             val searchMatch = normalizedQuery.isBlank() ||
                 suivi.editeur_nom.contains(normalizedQuery, ignoreCase = true)
 
@@ -120,30 +126,6 @@ class WorkflowViewModel(
     }
 
     companion object {
-        const val ETAT_TOUS = "TOUS"
-
-        const val ETAT_PAS_CONTACTE = "PAS_CONTACTE"
-        const val ETAT_CONTACTE = "CONTACTE"
-        const val ETAT_DISCUSSION = "DISCUSSION"
-        const val ETAT_REFUS = "REFUS"
-        const val ETAT_CONFIRME = "CONFIRME"
-
-        val etatsDisponibles = listOf(
-            ETAT_TOUS,
-            ETAT_PAS_CONTACTE,
-            ETAT_CONTACTE,
-            ETAT_DISCUSSION,
-            ETAT_REFUS,
-            ETAT_CONFIRME
-        )
-
-        val etatLabels = mapOf(
-            ETAT_TOUS to "Tous",
-            ETAT_PAS_CONTACTE to "Pas contacte",
-            ETAT_CONTACTE to "Contacte",
-            ETAT_DISCUSSION to "Discussion en cours",
-            ETAT_REFUS to "Refus / Absent",
-            ETAT_CONFIRME to "Confirme / Present"
-        )
+        val etatsDisponibles: List<EtatSuivi> = EtatSuivi.entries
     }
 }

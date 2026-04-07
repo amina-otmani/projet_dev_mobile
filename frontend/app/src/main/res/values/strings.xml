@@ -1,3 +1,24 @@
 <resources>
     <string name="app_name">projet_dev_mobile</string>
+    <string name="workflow_load_error">Erreur lors du chargement du workflow</string>
+    <string name="workflow_update_error">Impossible de mettre a jour le suivi. Verifiez votre connexion et reessayez.</string>
+    <string name="workflow_title">Workflow de suivi des editeurs (%1$d)</string>
+    <string name="workflow_search_label">Rechercher un editeur</string>
+    <string name="workflow_filter_state_label">Filtrer par etat</string>
+    <string name="workflow_no_data">Aucun editeur a afficher avec ce filtre.</string>
+    <string name="workflow_dates_contact">Dates de contact: %1$s</string>
+    <string name="workflow_nb_jeux">Nb jeux: %1$d</string>
+    <string name="workflow_responsable">Responsable: %1$s</string>
+    <string name="workflow_state_label">Etat</string>
+    <string name="workflow_action_contact">Prendre contact</string>
+    <string name="workflow_action_relance">Relancer</string>
+    <string name="workflow_state_all">Tous</string>
+    <string name="workflow_state_pas_contacte">Pas contacte</string>
+    <string name="workflow_state_contacte">Contacte</string>
+    <string name="workflow_state_discussion">Discussion en cours</string>
+    <string name="workflow_state_refus">Refus / Absent</string>
+    <string name="workflow_state_confirme">Confirme / Present</string>
+    <string name="workflow_responsable_unknown">-</string>
+    <string name="workflow_no_contact">Aucun contact</string>
+    <string name="workflow_ok">OK</string>
 </resources>

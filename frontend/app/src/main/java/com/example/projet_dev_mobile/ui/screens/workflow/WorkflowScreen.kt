@@ -30,9 +30,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.projet_dev_mobile.R
+import com.example.projet_dev_mobile.data.entity.enum.EtatSuivi
 import com.example.projet_dev_mobile.data.entity.enum.RoleType
 import com.example.projet_dev_mobile.data.local.TokenManager
 import com.example.projet_dev_mobile.data.network.dto.SuiviDto
@@ -56,9 +59,9 @@ fun WorkflowScreen(
     ) {
         when {
             uiState.isLoading -> CircularProgressIndicator()
-            uiState.isError && uiState.suivis.isEmpty() -> {
+            uiState.hasLoadError && uiState.suivis.isEmpty() -> {
                 Text(
-                    text = "Erreur lors du chargement du workflow",
+                    text = stringResource(R.string.workflow_load_error),
                     color = MaterialTheme.colorScheme.error
                 )
             }
@@ -67,6 +70,9 @@ fun WorkflowScreen(
                 total = uiState.suivis.size,
                 searchQuery = uiState.searchQuery,
                 selectedEtatFilter = uiState.selectedEtatFilter,
+                showLoadErrorBanner = uiState.hasLoadError && uiState.suivis.isNotEmpty(),
+                showMutationErrorBanner = uiState.hasMutationError,
+                onDismissMutationError = viewModel::clearMutationError,
                 onSearchQueryChange = viewModel::onSearchQueryChange,
                 onEtatFilterChange = viewModel::onEtatFilterChange,
                 onPrendreContact = viewModel::prendreContact,
@@ -82,11 +88,14 @@ private fun WorkflowContent(
     suivis: List<SuiviDto>,
     total: Int,
     searchQuery: String,
-    selectedEtatFilter: String,
+    selectedEtatFilter: EtatSuivi?,
+    showLoadErrorBanner: Boolean,
+    showMutationErrorBanner: Boolean,
+    onDismissMutationError: () -> Unit,
     onSearchQueryChange: (String) -> Unit,
-    onEtatFilterChange: (String) -> Unit,
+    onEtatFilterChange: (EtatSuivi?) -> Unit,
     onPrendreContact: (Int) -> Unit,
-    onChangerEtat: (Int, String) -> Unit,
+    onChangerEtat: (Int, EtatSuivi) -> Unit,
     canEdit: Boolean
 ) {
     LazyColumn(
@@ -96,10 +105,35 @@ private fun WorkflowContent(
     ) {
         item {
             Text(
-                text = "Workflow de suivi des editeurs ($total)",
+                text = stringResource(R.string.workflow_title, total),
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(bottom = 4.dp)
             )
+        }
+
+        if (showLoadErrorBanner) {
+            item {
+                Text(
+                    text = stringResource(R.string.workflow_load_error),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+
+        if (showMutationErrorBanner) {
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = stringResource(R.string.workflow_update_error),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Button(onClick = onDismissMutationError) {
+                        Text(stringResource(R.string.workflow_ok))
+                    }
+                }
+            }
         }
 
         item {
@@ -108,7 +142,7 @@ private fun WorkflowContent(
                 onValueChange = onSearchQueryChange,
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                label = { Text("Rechercher un editeur") }
+                label = { Text(stringResource(R.string.workflow_search_label)) }
             )
         }
 
@@ -122,7 +156,7 @@ private fun WorkflowContent(
         if (suivis.isEmpty()) {
             item {
                 Text(
-                    text = "Aucun editeur a afficher avec ce filtre.",
+                    text = stringResource(R.string.workflow_no_data),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -143,8 +177,8 @@ private fun WorkflowContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun WorkflowFilterDropdown(
-    selectedEtat: String,
-    onEtatSelected: (String) -> Unit
+    selectedEtat: EtatSuivi?,
+    onEtatSelected: (EtatSuivi?) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -153,10 +187,10 @@ private fun WorkflowFilterDropdown(
         onExpandedChange = { expanded = !expanded }
     ) {
         OutlinedTextField(
-            value = WorkflowViewModel.etatLabels[selectedEtat] ?: selectedEtat,
+            value = selectedEtatLabel(selectedEtat),
             onValueChange = {},
             readOnly = true,
-            label = { Text("Filtrer par etat") },
+            label = { Text(stringResource(R.string.workflow_filter_state_label)) },
             modifier = Modifier
                 .fillMaxWidth()
                 .menuAnchor(
@@ -170,9 +204,17 @@ private fun WorkflowFilterDropdown(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.workflow_state_all)) },
+                onClick = {
+                    onEtatSelected(null)
+                    expanded = false
+                }
+            )
+
             WorkflowViewModel.etatsDisponibles.forEach { etat ->
                 DropdownMenuItem(
-                    text = { Text(WorkflowViewModel.etatLabels[etat] ?: etat) },
+                    text = { Text(selectedEtatLabel(etat)) },
                     onClick = {
                         onEtatSelected(etat)
                         expanded = false
@@ -188,8 +230,10 @@ private fun SuiviCard(
     suivi: SuiviDto,
     canEdit: Boolean,
     onPrendreContact: (Int) -> Unit,
-    onChangerEtat: (Int, String) -> Unit
+    onChangerEtat: (Int, EtatSuivi) -> Unit
 ) {
+    val currentEtat = suiviEtatOrDefault(suivi.etat)
+
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -202,13 +246,19 @@ private fun SuiviCard(
             )
 
             EtatDropdown(
-                selectedEtat = suivi.etat,
+                selectedEtat = currentEtat,
                 enabled = canEdit,
                 onEtatSelected = { onChangerEtat(suivi.editeur_id, it) }
             )
 
             Text(
-                text = "Dates de contact: ${formatDatesContact(suivi.dates_contact)}",
+                text = stringResource(
+                    R.string.workflow_dates_contact,
+                    formatDatesContact(
+                        dates = suivi.dates_contact,
+                        noContactLabel = stringResource(R.string.workflow_no_contact)
+                    )
+                ),
                 style = MaterialTheme.typography.bodyMedium
             )
 
@@ -217,18 +267,21 @@ private fun SuiviCard(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    text = "Nb jeux: ${suivi.nb_jeux}",
+                    text = stringResource(R.string.workflow_nb_jeux, suivi.nb_jeux),
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Text(
-                    text = "Responsable: ${suivi.responsable_nom ?: "-"}",
+                    text = stringResource(
+                        R.string.workflow_responsable,
+                        suivi.responsable_nom ?: stringResource(R.string.workflow_responsable_unknown)
+                    ),
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
 
-            val actionLabel = when (suivi.etat) {
-                WorkflowViewModel.ETAT_PAS_CONTACTE -> "Prendre contact"
-                WorkflowViewModel.ETAT_CONTACTE -> "Relancer"
+            val actionLabel = when (currentEtat) {
+                EtatSuivi.PAS_CONTACTE -> stringResource(R.string.workflow_action_contact)
+                EtatSuivi.CONTACTE -> stringResource(R.string.workflow_action_relance)
                 else -> null
             }
 
@@ -247,9 +300,9 @@ private fun SuiviCard(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EtatDropdown(
-    selectedEtat: String,
+    selectedEtat: EtatSuivi,
     enabled: Boolean,
-    onEtatSelected: (String) -> Unit
+    onEtatSelected: (EtatSuivi) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -262,11 +315,11 @@ private fun EtatDropdown(
         }
     ) {
         OutlinedTextField(
-            value = WorkflowViewModel.etatLabels[selectedEtat] ?: selectedEtat,
+            value = selectedEtatLabel(selectedEtat),
             onValueChange = {},
             readOnly = true,
             enabled = enabled,
-            label = { Text("Etat") },
+            label = { Text(stringResource(R.string.workflow_state_label)) },
             modifier = Modifier
                 .fillMaxWidth()
                 .menuAnchor(
@@ -281,10 +334,9 @@ private fun EtatDropdown(
             onDismissRequest = { expanded = false }
         ) {
             WorkflowViewModel.etatsDisponibles
-                .filter { it != WorkflowViewModel.ETAT_TOUS }
                 .forEach { etat ->
                     DropdownMenuItem(
-                        text = { Text(WorkflowViewModel.etatLabels[etat] ?: etat) },
+                        text = { Text(selectedEtatLabel(etat)) },
                         onClick = {
                             onEtatSelected(etat)
                             expanded = false
@@ -295,8 +347,8 @@ private fun EtatDropdown(
     }
 }
 
-private fun formatDatesContact(dates: List<String>): String {
-    if (dates.isEmpty()) return "Aucun contact"
+private fun formatDatesContact(dates: List<String>, noContactLabel: String): String {
+    if (dates.isEmpty()) return noContactLabel
 
     return dates.joinToString(separator = ", ") { date ->
         if (date.length >= 10) {
@@ -307,4 +359,20 @@ private fun formatDatesContact(dates: List<String>): String {
             date
         }
     }
+}
+
+@Composable
+private fun selectedEtatLabel(etat: EtatSuivi?): String {
+    return when (etat) {
+        null -> stringResource(R.string.workflow_state_all)
+        EtatSuivi.PAS_CONTACTE -> stringResource(R.string.workflow_state_pas_contacte)
+        EtatSuivi.CONTACTE -> stringResource(R.string.workflow_state_contacte)
+        EtatSuivi.DISCUSSION -> stringResource(R.string.workflow_state_discussion)
+        EtatSuivi.REFUS -> stringResource(R.string.workflow_state_refus)
+        EtatSuivi.CONFIRME -> stringResource(R.string.workflow_state_confirme)
+    }
+}
+
+private fun suiviEtatOrDefault(rawEtat: String): EtatSuivi {
+    return runCatching { EtatSuivi.valueOf(rawEtat) }.getOrDefault(EtatSuivi.PAS_CONTACTE)
 }

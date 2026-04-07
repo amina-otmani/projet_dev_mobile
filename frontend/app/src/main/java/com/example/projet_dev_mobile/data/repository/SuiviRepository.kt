@@ -1,5 +1,7 @@
 package com.example.projet_dev_mobile.data.repository
 
+import android.util.Log
+import com.example.projet_dev_mobile.data.entity.enum.EtatSuivi
 import com.example.projet_dev_mobile.data.network.APIService
 import com.example.projet_dev_mobile.data.network.dto.PrendreContactRequest
 import com.example.projet_dev_mobile.data.network.dto.SuiviDto
@@ -13,9 +15,11 @@ class SuiviRepository(private val apiService: APIService) {
             if (response.isSuccessful) {
                 response.body().orEmpty()
             } else {
+                Log.w("SuiviRepository", "getSuivisByFestival($festivalId) failed with HTTP ${response.code()}")
                 null
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Log.e("SuiviRepository", "Error in getSuivisByFestival($festivalId)", e)
             null
         }
     }
@@ -28,8 +32,19 @@ class SuiviRepository(private val apiService: APIService) {
                     editeur_id = editeurId
                 )
             )
+            if (!response.isSuccessful) {
+                Log.w(
+                    "SuiviRepository",
+                    "prendreContact failed with HTTP ${response.code()} for festivalId=$festivalId, editeurId=$editeurId"
+                )
+            }
             response.isSuccessful
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Log.e(
+                "SuiviRepository",
+                "Error in prendreContact(festivalId=$festivalId, editeurId=$editeurId)",
+                e
+            )
             false
         }
     }
@@ -37,7 +52,7 @@ class SuiviRepository(private val apiService: APIService) {
     suspend fun updateSuivi(
         festivalId: Int,
         editeurId: Int,
-        etat: String,
+        etat: EtatSuivi,
         compteRendu: String? = null,
         responsableId: Int? = null
     ): Boolean {
@@ -46,13 +61,24 @@ class SuiviRepository(private val apiService: APIService) {
                 request = UpdateSuiviRequest(
                     festival_id = festivalId,
                     editeur_id = editeurId,
-                    etat = etat,
+                    etat = etat.name,
                     compte_rendu = compteRendu,
                     responsable_id = responsableId
                 )
             )
+            if (!response.isSuccessful) {
+                Log.w(
+                    "SuiviRepository",
+                    "updateSuivi failed with HTTP ${response.code()} for festivalId=$festivalId, editeurId=$editeurId, etat=${etat.name}"
+                )
+            }
             response.isSuccessful
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Log.e(
+                "SuiviRepository",
+                "Error in updateSuivi(festivalId=$festivalId, editeurId=$editeurId, etat=${etat.name})",
+                e
+            )
             false
         }
     }
