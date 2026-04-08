@@ -1,5 +1,7 @@
 package com.example.projet_dev_mobile.ui
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
@@ -20,6 +22,7 @@ import com.example.projet_dev_mobile.ui.screens.reservations.ReservationViewMode
 import com.example.projet_dev_mobile.ui.screens.workflow.WorkflowViewModel
 
 object AppViewModelProvider {
+    @RequiresApi(Build.VERSION_CODES.O)
     val Factory = viewModelFactory {
         // La "recette" pour créer le FestivalHomeViewModel
         initializer {
@@ -52,7 +55,8 @@ object AppViewModelProvider {
         initializer {
             EditeursViewModel(
                 festivalApplication().container.editeursRepository,
-                festivalApplication().container.jeuxRepository
+                festivalApplication().container.jeuxRepository,
+                festivalApplication().container.reservationsRepository
             )
         }
 
@@ -120,6 +124,28 @@ object AppViewModelProvider {
             WorkflowViewModel(
                 festivalId = festivalId,
                 suiviRepository = festivalApplication().container.suiviRepository
+            )
+        }
+    }
+
+    fun editeursForFestivalFactory(festivalId: Int) = viewModelFactory {
+        initializer {
+            EditeursViewModel(
+                editeursRepository = festivalApplication().container.editeursRepository,
+                jeuxRepository = festivalApplication().container.jeuxRepository,
+                reservationsRepository = festivalApplication().container.reservationsRepository,
+                festivalId = festivalId
+            )
+        }
+    }
+
+    fun jeuxForFestivalFactory(festivalId: Int) = viewModelFactory {
+        initializer {
+            JeuxViewModel(
+                jeuxRepository = festivalApplication().container.jeuxRepository,
+                editeursRepository = festivalApplication().container.editeursRepository,
+                reservationsRepository = festivalApplication().container.reservationsRepository,
+                festivalId = festivalId
             )
         }
     }

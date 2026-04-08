@@ -38,6 +38,10 @@ import com.example.projet_dev_mobile.data.entity.enum.RoleType
 import com.example.projet_dev_mobile.ui.AppViewModelProvider
 import com.example.projet_dev_mobile.ui.screens.dashboard.FestivalDetailsScreen
 import com.example.projet_dev_mobile.ui.screens.dashboard.FestivalDetailsViewModel
+import com.example.projet_dev_mobile.ui.screens.editeurs.EditeursScreen
+import com.example.projet_dev_mobile.ui.screens.editeurs.EditeursViewModel
+import com.example.projet_dev_mobile.ui.screens.jeux.JeuxScreen
+import com.example.projet_dev_mobile.ui.screens.jeux.JeuxViewModel
 import com.example.projet_dev_mobile.ui.screens.reservations.ReservationFormScreen
 import com.example.projet_dev_mobile.ui.screens.reservations.ReservationFormViewModel
 import com.example.projet_dev_mobile.ui.screens.reservations.ReservationViewModel
@@ -149,11 +153,31 @@ fun FestivalNavigation(
                                 }
 
                                 FestivalDestination.EDITEURS -> NavEntry(key) {
-                                    Text("Éditeurs du festival $festivalId")
+                                    val editeursViewModel: EditeursViewModel = viewModel(
+                                        key = "editeurs_festival_$festivalId",
+                                        factory = AppViewModelProvider.editeursForFestivalFactory(festivalId)
+                                    )
+                                    EditeursScreen(
+                                        viewModel = editeursViewModel,
+                                        onEditeurClick = { editeur ->
+                                            backStack.add(EditeurDetailsDestination(editeur.id, editeur.nom))
+                                        },
+                                        onNavigateToEntry = {
+                                            backStack.add(EditeurEntryDestination)
+                                        }
+                                    )
                                 }
 
                                 FestivalDestination.JEUX -> NavEntry(key) {
-                                    Text("Jeux du festival $festivalId")
+                                    val jeuxViewModel: JeuxViewModel = viewModel(
+                                        key = "jeux_festival_$festivalId",
+                                        factory = AppViewModelProvider.jeuxForFestivalFactory(festivalId)
+                                    )
+                                    JeuxScreen(
+                                        viewModel = jeuxViewModel,
+                                        onJeuClick = { jeuId -> backStack.add(JeuDetailsDestination(jeuId)) },
+                                        onNavigateToEntry = { backStack.add(JeuEntryDestination) }
+                                    )
                                 }
 
                                 FestivalDestination.WORKFLOW -> NavEntry(key) {
